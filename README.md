@@ -423,7 +423,7 @@ Certain jobs take in additional configuration settings. If you want to define th
 
 If a job has the same settings configured on job-level, the job-level settings will take precedence.
 
-#### max_strikes
+#### MAX_STRIKES
 
 -   Certain jobs wait before removing a download, until the jobs have caught the same download a given number of times. This is defined by max_strikes
 -   max_strikes defines the number of consecutive times a download can fail before it is removed.
