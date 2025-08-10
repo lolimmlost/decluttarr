@@ -160,8 +160,8 @@ class QbitClient:
         await self.create_tag(self.settings.general.protected_tag)
 
         if (
-            self.settings.general.public_tracker_handling == "tag_as_obsolete"
-            or self.settings.general.private_tracker_handling == "tag_as_obsolete"
+            self.settings.general.public_tracker_handling == "obsolete_tag"
+            or self.settings.general.private_tracker_handling == "obsolete_tag"
         ):
             await self.create_tag(self.settings.general.obsolete_tag)
 
