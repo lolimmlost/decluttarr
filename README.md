@@ -37,6 +37,7 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
     - [REMOVE_SLOW](#remove_slow)
     - [REMOVE_STALLED](#remove_stalled)
     - [REMOVE_UNMONITORED](#remove_unmonitored)
+    - [REMOVE_COMPLETED](#remove_completed)
     - [SEARCH_CUTOFF_UNMET](#search_unmet_cutoff)
     - [SEARCH_MISSING](#search_missing)
     - [DETECT_DELETIONS](#detect_deletions)
@@ -68,6 +69,7 @@ Feature overview:
 -   Removing downloads that are repeatedly have been found to be slow (remove_slow)
 -   Removing downloads that are stalled (remove_stalled)
 -   Removing downloads belonging to movies/series/albums etc. that have been marked as "unmonitored" (remove_unmonitored)
+-   Removing completed downloads from your download client that match certain criteria (remove_completed)
 -   Periodically searching for better content on movies/series/albums etc. where cutoff has not been reached yet (search_cutoff_unmet)
 -   Periodically searching for missing content that has not yet been found (search_missing)
 
@@ -561,6 +563,17 @@ This is the interesting section. It defines which job you want decluttarr to run
 -   Type: Boolean
 -   Permissible Values: True, False
 -   Is Mandatory: No (Defaults to False)
+
+#### REMOVE_COMPLETED
+
+-   Steers whether completed downloads are removed from your download client's queue. This is particularly useful for cleaning up torrents that have finished seeding and are no longer needed.
+-   Permissible Values:
+    -   `target_tags`: A list of tags to identify completed items for removal.
+    -   `target_categories`: A list of categories to identify completed items for removal.
+-   Is Mandatory: No (Defaults to False)
+-   Note:
+    -   This job currently only supports qBittorrent.
+    -   It's useful for cleaning up items that might have been tagged as "obsolete" by other jobs in this tool, once they have finished seeding or automations for boosting ratio in private trackers.
 
 #### SEARCH_UNMET_CUTOFF
 
