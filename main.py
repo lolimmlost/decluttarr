@@ -1,22 +1,26 @@
 import asyncio
-import signal
-import types
 import datetime
+import signal
 import sys
+import types
 
+from src.deletion_handler.deletion_handler import WatcherManager
 from src.job_manager import JobManager
 from src.settings.settings import Settings
 from src.utils.log_setup import logger
 from src.utils.startup import launch_steps
-from src.deletion_handler.deletion_handler import WatcherManager
 
 settings = Settings()
 job_manager = JobManager(settings)
 watch_manager = WatcherManager(settings)
 
-def terminate(sigterm: signal.SIGTERM, frame: types.FrameType) -> None:  # noqa: ARG001, pylint: disable=unused-argument
 
-    """Terminate cleanly. Needed for respecting 'docker stop'.
+def terminate(
+    sigterm: signal.SIGTERM,
+    frame: types.FrameType,
+) -> None:
+    """
+    Terminate cleanly. Needed for respecting 'docker stop'.
 
     Args:
     ----
@@ -24,20 +28,25 @@ def terminate(sigterm: signal.SIGTERM, frame: types.FrameType) -> None:  # noqa:
         frame: The execution frame.
 
     """
-
-    logger.info(f"Termination signal received at {datetime.datetime.now()}.")  # noqa: DTZ005
+    logger.info(
+        f"Termination signal received at {datetime.datetime.now()}.",
+    )
     watch_manager.stop()
     sys.exit(0)
 
+
 async def wait_next_run():
-   # Calculate next run time dynamically (to display)
-    next_run = datetime.datetime.now() + datetime.timedelta(minutes=settings.general.timer)
+    # Calculate next run time dynamically (to display)
+    next_run = datetime.datetime.now() + datetime.timedelta(
+        minutes=settings.general.timer,
+    )
     formatted_next_run = next_run.strftime("%Y-%m-%d %H:%M")
 
     logger.verbose(f"*** Done - Next run at {formatted_next_run} ****")
 
     # Wait for the next run
     await asyncio.sleep(settings.general.timer * 60)
+
 
 # Main function
 async def main():
@@ -58,9 +67,11 @@ async def main():
             await job_manager.run_jobs(arr)
             logger.verbose("")
 
+        # Run download client jobs (these run independently of *arr instances)
+        await job_manager.run_download_client_jobs()
+
         # Wait for the next run
         await wait_next_run()
-    return
 
 
 if __name__ == "__main__":

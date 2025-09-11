@@ -42,6 +42,11 @@ jobs:
   search_missing:
     # min_days_between_searches: 7
     # max_concurrent_searches: 3
+  remove_completed:
+    target_tags:
+      - "Obsolete"
+    # target_categories:
+    #  - "autobrr"
 
 instances:
   sonarr:

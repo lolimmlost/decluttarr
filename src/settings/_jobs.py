@@ -64,7 +64,7 @@ class JobDefaults:
             self.max_concurrent_searches = max_concurrent_searches
         else:
             logger.warning(
-                f"Job default 'max_concurrent_searches' must be an integer greater 0. Found: {str(max_concurrent_searches)}. Using default: {self.max_concurrent_searches}"
+                f"Job default 'max_concurrent_searches' must be an integer greater 0. Found: {max_concurrent_searches!s}. Using default: {self.max_concurrent_searches}",
             )
         self.min_days_between_searches = job_defaults_config.get(
             "min_days_between_searches",
@@ -84,6 +84,7 @@ class Jobs:
 
     def _set_job_defaults(self):
         self.remove_bad_files = JobParams(keep_archives=self.job_defaults.keep_archives)
+        self.remove_completed = JobParams()
         self.remove_failed_downloads = JobParams()
         self.remove_failed_imports = JobParams(
             message_patterns=self.job_defaults.message_patterns,
@@ -108,7 +109,6 @@ class Jobs:
             min_days_between_searches=self.job_defaults.min_days_between_searches,
         )
         self.detect_deletions = JobParams()
-
 
     def _set_job_configs(self, config):
         # Populate jobs from YAML config
