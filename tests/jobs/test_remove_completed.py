@@ -19,10 +19,11 @@ def create_mock_settings(target_tags=None, target_categories=None):
     return settings
 
 
-def create_mock_download_client(items: list):
+def create_mock_download_client(items, client_name="mock_client_name"):
     """Create a mock download client."""
     client = MagicMock()
     client.get_qbit_items = AsyncMock(return_value=items)
+    client.name = client_name
     return client
 
 
@@ -145,11 +146,11 @@ async def test_remove_completed_logic(
 async def test_remove_completed_skipped_for_sabnzbd():
     """Test that the remove_completed job is skipped for SABnzbd clients."""
     settings = create_mock_settings()
-    client = create_mock_download_client([])
+    client = create_mock_download_client([], client_name="mock_client_name")
     job = RemoveCompleted(client, "sabnzbd", settings, "remove_completed")
 
     # We check the log message instead of mocking the super run
-    with patch.object(job.logger, "debug") as mock_log:
+    with patch("src.jobs.remove_completed.logger.debug") as mock_log:
         result = await job.run()
         assert result == 0
         mock_log.assert_called_with(
