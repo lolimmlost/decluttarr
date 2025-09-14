@@ -150,7 +150,6 @@ Alternatively, you can put all settings [directly in your docker-compose](#docke
 Note: Always pull the "**latest**" version. The "dev" version is for testing only, and should only be pulled when contributing code or supporting with bug fixes
 
 ```yaml
-version: "3.3"
 services:
   decluttarr:
     image: ghcr.io/manimatter/decluttarr:latest
@@ -181,7 +180,6 @@ If you want to have everything in docker compose:
 
 Note: Always pull the "**latest**" version. The "dev" version is for testing only, and should only be pulled when contributing code or supporting with bug fixes
 ```yaml
-version: "3.3"
 services:
   decluttarr:
     image: ghcr.io/manimatter/decluttarr:latest
