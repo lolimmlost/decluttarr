@@ -84,7 +84,7 @@ class SearchHandler:
         return items[: self.job.max_concurrent_searches]
 
     def _filter_already_downloading(self, wanted_items, queue):
-        queue_ids = {q[self.arr.detail_item_id_key] for q in queue}
+        queue_ids = {q['detail_item_id'] for q in queue}
         return [item for item in wanted_items if item["id"] not in queue_ids]
 
     async def _trigger_search(self, items):
