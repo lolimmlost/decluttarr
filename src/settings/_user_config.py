@@ -1,8 +1,11 @@
 import os
 from pathlib import Path
 import yaml
+from yaml_env_tag import add_env_tag
 
 from src.utils.log_setup import logger
+
+LOADER = add_env_tag(yaml.Loader)
 
 CONFIG_MAPPING = {
     "general": [
@@ -82,7 +85,7 @@ def _load_from_env() -> dict:
                 continue
 
             try:
-                parsed_value = yaml.safe_load(raw_value)
+                parsed_value = yaml.load(raw_value, Loader=LOADER)
                 parsed_value = _lowercase(parsed_value)
             except yaml.YAMLError as e:
                 logger.error(
@@ -116,7 +119,7 @@ def _load_from_yaml_file(settings):
     config_path = settings.paths.config_file
     try:
         with Path(config_path).open(encoding="utf-8") as file:
-            return yaml.safe_load(file) or {}
+            return yaml.load(file, Loader=LOADER) or {}
     except yaml.YAMLError as e:
         logger.error("Error reading YAML file: %s", e)
         return {}
