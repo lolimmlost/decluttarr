@@ -47,6 +47,13 @@ class RemoveCompleted(DownloadClientRemovalJob):
 
         return items_to_remove
 
+    def _get_limit(self, item: dict, specific_key: str, global_key: str) -> float:
+        """Get a limit from item, falling back to a global key."""
+        limit = item.get(specific_key, -1)
+        if limit <= 0:
+            limit = item.get(global_key, -1)
+        return limit
+
     def _is_completed(self, item: dict) -> bool:
         """Check if an item has met its seeding goals."""
         state = item.get("state", "")
@@ -55,9 +62,14 @@ class RemoveCompleted(DownloadClientRemovalJob):
 
         # Additional sanity checks for ratio and seeding time
         ratio = item.get("ratio", 0)
-        ratio_limit = item.get("ratio_limit", -1)
         seeding_time = item.get("seeding_time", 0)
-        seeding_time_limit = item.get("seeding_time_limit", -1)
+
+        ratio_limit = self._get_limit(item, "ratio_limit", "max_ratio")
+        seeding_time_limit = self._get_limit(
+            item,
+            "seeding_time_limit",
+            "max_seeding_time",
+        )
 
         ratio_limit_met = ratio >= ratio_limit > 0
         seeding_time_limit_met = seeding_time >= seeding_time_limit > 0
