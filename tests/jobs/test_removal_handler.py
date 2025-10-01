@@ -1,4 +1,5 @@
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from src.jobs.removal_handler import RemovalHandler
@@ -32,7 +33,10 @@ async def test_get_handling_method(
     settings.download_clients.qbittorrent = ["dummy"] if qbittorrent_configured else []
 
     # Simulate (client_name, client_type) return
-    settings.download_clients.get_download_client_by_name.return_value = ("client_name", client_type)
+    settings.download_clients.get_download_client_by_name.return_value = (
+        "client_name",
+        client_type,
+    )
 
     settings.general.private_tracker_handling = "private_handling"
     settings.general.public_tracker_handling = "public_handling"
@@ -44,7 +48,7 @@ async def test_get_handling_method(
         "protocol": protocol,
     }
 
-    result = await handler._get_handling_method( # pylint: disable=W0212
+    result = await handler._get_handling_method(  # pylint: disable=W0212
         "A", affected_download
     )
     assert result == expected

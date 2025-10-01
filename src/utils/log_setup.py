@@ -33,7 +33,9 @@ logger = logging.getLogger(__name__)
 
 def set_handler_format(log_handler, *, long_format=True):
     if long_format:
-        target_format = logging.Formatter("%(asctime)s | %(levelname)-7s | %(message)s", "%Y-%m-%d %H:%M:%S")
+        target_format = logging.Formatter(
+            "%(asctime)s | %(levelname)-7s | %(message)s", "%Y-%m-%d %H:%M:%S"
+        )
     else:
         target_format = logging.Formatter("%(levelname)-7s | %(message)s")
     log_handler.setFormatter(target_format)
@@ -56,7 +58,9 @@ def configure_logging(settings):
     Path(log_dir).mkdir(exist_ok=True, parents=True)
 
     # File handler
-    file_handler = RotatingFileHandler(log_file, maxBytes=50 * 1024 * 1024, backupCount=2)
+    file_handler = RotatingFileHandler(
+        log_file, maxBytes=50 * 1024 * 1024, backupCount=2
+    )
     set_handler_format(file_handler, long_format=True)
     logger.addHandler(file_handler)
 

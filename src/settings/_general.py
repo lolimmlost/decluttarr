@@ -23,17 +23,29 @@ class General:
         self.log_level = general_config.get("log_level", self.log_level.upper())
         self.test_run = general_config.get("test_run", self.test_run)
         self.timer = general_config.get("timer", self.timer)
-        self.ssl_verification = general_config.get("ssl_verification", self.ssl_verification)
-        self.ignored_download_clients = general_config.get("ignored_download_clients", self.ignored_download_clients)
+        self.ssl_verification = general_config.get(
+            "ssl_verification", self.ssl_verification
+        )
+        self.ignored_download_clients = general_config.get(
+            "ignored_download_clients", self.ignored_download_clients
+        )
 
-        self.private_tracker_handling = general_config.get("private_tracker_handling", self.private_tracker_handling)
-        self.public_tracker_handling = general_config.get("public_tracker_handling", self.public_tracker_handling)
+        self.private_tracker_handling = general_config.get(
+            "private_tracker_handling", self.private_tracker_handling
+        )
+        self.public_tracker_handling = general_config.get(
+            "public_tracker_handling", self.public_tracker_handling
+        )
         self.obsolete_tag = general_config.get("obsolete_tag", self.obsolete_tag)
         self.protected_tag = general_config.get("protected_tag", self.protected_tag)
 
         # Validate tracker handling settings
-        self.private_tracker_handling = self._validate_tracker_handling(self.private_tracker_handling, "private_tracker_handling")
-        self.public_tracker_handling = self._validate_tracker_handling(self.public_tracker_handling, "public_tracker_handling")
+        self.private_tracker_handling = self._validate_tracker_handling(
+            self.private_tracker_handling, "private_tracker_handling"
+        )
+        self.public_tracker_handling = self._validate_tracker_handling(
+            self.public_tracker_handling, "public_tracker_handling"
+        )
         self.obsolete_tag = self._determine_obsolete_tag(self.obsolete_tag)
 
         validate_data_types(self)

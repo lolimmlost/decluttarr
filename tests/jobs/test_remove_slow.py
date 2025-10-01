@@ -1,8 +1,9 @@
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
-from tests.jobs.utils import shared_fix_affected_items
 from src.jobs.remove_slow import RemoveSlow
+from tests.jobs.utils import shared_fix_affected_items
 
 
 # pylint: disable=W0212
@@ -81,8 +82,6 @@ async def test_missing_keys(item, expected_result):
 def test_not_downloading(item, expected_result):
     result = RemoveSlow._not_downloading(item)
     assert result == expected_result
-
-
 
 
 @pytest.mark.parametrize(
@@ -238,7 +237,9 @@ async def test_get_progress_stats(
         (4, "other_client", 0.9, False),  # different client type
     ],
 )
-def test_high_bandwidth_usage(download_id, download_client_type, bandwidth_usage, expected):
+def test_high_bandwidth_usage(
+    download_id, download_client_type, bandwidth_usage, expected
+):
     """
     Test RemoveSlow._high_bandwidth_usage method.
 
@@ -288,7 +289,6 @@ async def test_add_download_client_to_queue_items_simple():
     assert item["download_client_type"] == download_client_type
 
 
-
 @pytest.mark.asyncio
 async def test_update_bandwidth_usage_calls_once_per_client():
     """
@@ -314,7 +314,10 @@ async def test_update_bandwidth_usage_calls_once_per_client():
             "download_client_type": "qbittorrent",
         },  # duplicate client
         {"download_client": qb_client2, "download_client_type": "qbittorrent"},
-        {"download_client": sabnzbd_client, "download_client_type": "sabnzbd"},  # SABnzbd client
+        {
+            "download_client": sabnzbd_client,
+            "download_client_type": "sabnzbd",
+        },  # SABnzbd client
         {"download_client": other_client, "download_client_type": "other"},
     ]
 
@@ -324,7 +327,10 @@ async def test_update_bandwidth_usage_calls_once_per_client():
     qb_client1.set_bandwidth_usage.assert_awaited_once()
     qb_client2.set_bandwidth_usage.assert_awaited_once()
     # Verify SABnzbd and other client methods were not called (no bandwidth tracking for them)
-    assert not hasattr(sabnzbd_client, 'set_bandwidth_usage') or not sabnzbd_client.set_bandwidth_usage.called
+    assert (
+        not hasattr(sabnzbd_client, "set_bandwidth_usage")
+        or not sabnzbd_client.set_bandwidth_usage.called
+    )
     other_client.set_bandwidth_usage.assert_not_awaited()
 
 
@@ -334,23 +340,16 @@ async def test_update_bandwidth_usage_calls_once_per_client():
     [
         # Already checked downloadId -> skip (simulate by repeating downloadId)
         ({"downloadId": "checked_before"}, False),
-
         # Keys not present -> skip
         ({"downloadId": "keys_missing"}, False),
-
         # Not Downloading -> skip
         ({"downloadId": "not_downloading"}, False),
-
-
         # Completed but stuck -> skip
         ({"downloadId": "completed_but_stuck"}, False),
-
         # High bandwidth usage -> skip
         ({"downloadId": "high_bandwidth"}, False),
-
         # Not slow -> skip
         ({"downloadId": "not_slow"}, False),
-
         # None of above, hence truly slow
         ({"downloadId": "good"}, True),
     ],
@@ -366,11 +365,20 @@ async def test_find_affected_items_simple(queue_item, should_be_affected):
     removal_job._get_progress_stats = AsyncMock(return_value=(1000, 900, 100, 10))
 
     # Setup checks to pass except in for the designated tests
-    removal_job._checked_before = lambda item, checked_ids: item.get("downloadId") == "checked_before"
+    removal_job._checked_before = (
+        lambda item, checked_ids: item.get("downloadId") == "checked_before"
+    )
     removal_job._missing_keys = lambda item: item.get("downloadId") == "keys_missing"
-    removal_job._not_downloading = lambda item: item.get("downloadId") == "not_downloading"
-    removal_job._is_completed_but_stuck = lambda item: item.get("downloadId") == "completed_but_stuck"
-    removal_job._high_bandwidth_usage = lambda download_client, download_client_type=None: queue_item.get("downloadId") == "high_bandwidth"
+    removal_job._not_downloading = (
+        lambda item: item.get("downloadId") == "not_downloading"
+    )
+    removal_job._is_completed_but_stuck = (
+        lambda item: item.get("downloadId") == "completed_but_stuck"
+    )
+    removal_job._high_bandwidth_usage = (
+        lambda download_client, download_client_type=None: queue_item.get("downloadId")
+        == "high_bandwidth"
+    )
     removal_job._not_slow = lambda speed: queue_item.get("downloadId") == "not_slow"
 
     # Run the method under test
@@ -380,4 +388,6 @@ async def test_find_affected_items_simple(queue_item, should_be_affected):
         assert affected_items, f"Item {queue_item.get('downloadId')} should be affected"
         assert affected_items[0]["downloadId"] == queue_item["downloadId"]
     else:
-        assert not affected_items, f"Item {queue_item.get('downloadId')} should NOT be affected"
+        assert (
+            not affected_items
+        ), f"Item {queue_item.get('downloadId')} should NOT be affected"

@@ -23,7 +23,9 @@ def validate_data_types(cls, default_cls=None):
             continue
 
         value = getattr(cls, attr)
-        default_source = default_cls if default_cls and hasattr(default_cls, attr) else cls.__class__
+        default_source = (
+            default_cls if default_cls and hasattr(default_cls, attr) else cls.__class__
+        )
         default_value = getattr(default_source, attr, None)
 
         if value == default_value:

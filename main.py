@@ -16,11 +16,10 @@ watch_manager = WatcherManager(settings)
 
 
 def terminate(
-    sigterm: signal.SIGTERM,
-    frame: types.FrameType,
+    sigterm: signal.SIGTERM,  # noqa: ARG001, pylint: disable=unused-argument
+    frame: types.FrameType,  # noqa: ARG001, pylint: disable=unused-argument
 ) -> None:
-    """
-    Terminate cleanly. Needed for respecting 'docker stop'.
+    """Terminate cleanly. Needed for respecting 'docker stop'.
 
     Args:
     ----
@@ -28,9 +27,10 @@ def terminate(
         frame: The execution frame.
 
     """
+
     logger.info(
-        f"Termination signal received at {datetime.datetime.now()}.",
-    )
+        f"Termination signal received at {datetime.datetime.now()}."
+    )  # noqa: DTZ005
     watch_manager.stop()
     sys.exit(0)
 
@@ -38,7 +38,7 @@ def terminate(
 async def wait_next_run():
     # Calculate next run time dynamically (to display)
     next_run = datetime.datetime.now() + datetime.timedelta(
-        minutes=settings.general.timer,
+        minutes=settings.general.timer
     )
     formatted_next_run = next_run.strftime("%Y-%m-%d %H:%M")
 

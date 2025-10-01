@@ -12,6 +12,7 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
   - [Running in docker](#running-in-docker)
     - [Docker-compose with config file (recommended)](#docker-docker-compose-together-with-configyaml)
     - [Docker-compose only](#docker-specifying-all-settings-in-docker-compose)
+  - [Config file](#config-file)
 - [Upgrading from V1 to V2](#upgrading-from-v1-to-v2)
 - [Explanation of the settings](#explanation-of-the-settings)
   - [General](#general-settings)
@@ -290,6 +291,29 @@ services:
       # - $DOCKERDIR/appdata/decluttarr/logs:/app/logs # Uncomment to get logs in text file, too      
       # - $DATADIR/media:/media # If you use detect_deletions, add the identical mount paths that you use in your sonarr/radarr instances. This may be different to this example!
 ```
+
+### Config file
+
+Decluttarr V2 introduces a new configuration file that allows specifying
+configurations in YAML instead of through environment variables. It has the
+benefit of supporting multiple instances of the arrs and download clients. You
+can view [config_example.yaml](./config/config_example.yaml) for an example.
+
+The config file supports environment variables through the `!ENV` tag. For
+example, if you don't want to specify API keys statically, you can pass them in
+through environment variables and set your configuration to something like:
+
+```yaml
+instances:
+  sonarr:
+    - base_url: "http://sonarr.media"
+      api_key: !ENV SONARR_API_KEY
+
+  radarr:
+    - base_url: "http://radarr.media"
+      api_key: !ENV RADARR_API_KEY
+```
+
 ## Upgrading from V1 to V2
 
 Decluttarr v2 is a major update with a cleaner config format and powerful new features. Here's what changed and how to upgrade.

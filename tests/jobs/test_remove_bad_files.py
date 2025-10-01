@@ -1,8 +1,10 @@
 from pathlib import Path
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from src.jobs.remove_bad_files import RemoveBadFiles
+
 
 # Fixture for arr mock
 @pytest.fixture(name="removal_job")
@@ -18,12 +20,12 @@ def fixture_removal_job():
 @pytest.mark.parametrize(
     "file_name, expected_result, keep_archives",
     [
-        ("file.mp4", False, False), # Good extension
-        ("file.mkv", False, False), # Good extension
-        ("file.avi", False, False), # Good extension
+        ("file.mp4", False, False),  # Good extension
+        ("file.mkv", False, False),  # Good extension
+        ("file.avi", False, False),  # Good extension
         ("file.exe", True, False),  # Bad extension
         ("file.jpg", True, False),  # Bad extension
-        ("file.zip", True, False),   # Archive - Don't keep archives
+        ("file.zip", True, False),  # Archive - Don't keep archives
         ("file.zip", False, True),  # Archive - Keep archives
     ],
 )
@@ -44,16 +46,56 @@ def test_is_bad_extension(removal_job, file_name, expected_result, keep_archives
 @pytest.mark.parametrize(
     ("name", "size_bytes", "expected_result"),
     [
-        ("My.Movie.2024.2160/Subfolder/sample.mkv", 100 * 1024, True),           # 100 KB, 'sample' keyword in filename
-        ("My.Movie.2024.2160/Subfolder/Sample.mkv", 100 * 1024, True),           # 100 KB, case-insensitive match
-        ("My.Movie.2024.2160/Subfolder/sample movie.mkv", 100 * 1024, True),     # 100 KB, 'sample' keyword with space
-        ("My.Movie.2024.2160/Subfolder/samplemovie.mkv", 100 * 1024, True),      # 100 KB, 'sample' keyword concatenated
-        ("My.Movie.2024.2160/Subfolder/Movie sample.mkv", 100 * 1024, True),     # 100 KB, 'sample' keyword at end
-        ("My.Movie.2024.2160/Sample/Movie.mkv", 100 * 1024, True),               # 100 KB, 'sample' keyword in folder name
-        ("My.Movie.2024.2160/sample/Movie.mkv", 100 * 1024, True),               # 100 KB, lowercase folder name
-        ("My.Movie.2024.2160/Samples/Movie.mkv", 100 * 1024, True),              # 100 KB, plural form in folder name
-        ("My.Movie.2024.2160/Big Samples/Movie.mkv", 700 * 1024 * 1024, False),  # 700 MB, large file, should NOT be flagged
-        ("My.Movie.2024.2160/Some Folder/Movie.mkv", 100 * 1024, False),         # 100 KB, no 'sample' keyword, should not flag
+        (
+            "My.Movie.2024.2160/Subfolder/sample.mkv",
+            100 * 1024,
+            True,
+        ),  # 100 KB, 'sample' keyword in filename
+        (
+            "My.Movie.2024.2160/Subfolder/Sample.mkv",
+            100 * 1024,
+            True,
+        ),  # 100 KB, case-insensitive match
+        (
+            "My.Movie.2024.2160/Subfolder/sample movie.mkv",
+            100 * 1024,
+            True,
+        ),  # 100 KB, 'sample' keyword with space
+        (
+            "My.Movie.2024.2160/Subfolder/samplemovie.mkv",
+            100 * 1024,
+            True,
+        ),  # 100 KB, 'sample' keyword concatenated
+        (
+            "My.Movie.2024.2160/Subfolder/Movie sample.mkv",
+            100 * 1024,
+            True,
+        ),  # 100 KB, 'sample' keyword at end
+        (
+            "My.Movie.2024.2160/Sample/Movie.mkv",
+            100 * 1024,
+            True,
+        ),  # 100 KB, 'sample' keyword in folder name
+        (
+            "My.Movie.2024.2160/sample/Movie.mkv",
+            100 * 1024,
+            True,
+        ),  # 100 KB, lowercase folder name
+        (
+            "My.Movie.2024.2160/Samples/Movie.mkv",
+            100 * 1024,
+            True,
+        ),  # 100 KB, plural form in folder name
+        (
+            "My.Movie.2024.2160/Big Samples/Movie.mkv",
+            700 * 1024 * 1024,
+            False,
+        ),  # 700 MB, large file, should NOT be flagged
+        (
+            "My.Movie.2024.2160/Some Folder/Movie.mkv",
+            100 * 1024,
+            False,
+        ),  # 100 KB, no 'sample' keyword, should not flag
     ],
 )
 def test_contains_bad_keyword(removal_job, name, size_bytes, expected_result):
@@ -64,8 +106,6 @@ def test_contains_bad_keyword(removal_job, name, size_bytes, expected_result):
     }
     result = removal_job._contains_bad_keyword(file)  # pylint: disable=W0212
     assert result == expected_result
-
-
 
 
 @pytest.mark.parametrize(
@@ -179,7 +219,7 @@ async def test_get_items_to_process(qbit_item, expected_processed, removal_job):
     removal_job.arr.tracker.extension_checked = {"checked-hash"}
 
     # Act
-    processed_items = removal_job._get_items_to_process( # pylint: disable=W0212
+    processed_items = removal_job._get_items_to_process(  # pylint: disable=W0212
         [qbit_item]
     )
 
@@ -320,9 +360,14 @@ def fixture_torrent_files():
     ],
 )
 def test_all_files_stopped(
-    removal_job, torrent_files, stoppable_indexes, all_files_stopped,
+    removal_job,
+    torrent_files,
+    stoppable_indexes,
+    all_files_stopped,
 ):
     # Create stoppable_files using only the index for each file and a dummy reason
     stoppable_files = [({"index": idx}, "some reason") for idx in stoppable_indexes]
-    result = removal_job._all_files_stopped(torrent_files, stoppable_files)  # pylint: disable=W0212
+    result = removal_job._all_files_stopped(  # pylint: disable=W0212
+        torrent_files, stoppable_files
+    )
     assert result == all_files_stopped

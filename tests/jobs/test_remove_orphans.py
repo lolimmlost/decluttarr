@@ -1,7 +1,7 @@
 import pytest
 
-from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 from src.jobs.remove_orphans import RemoveOrphans
+from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 
 
 @pytest.mark.asyncio

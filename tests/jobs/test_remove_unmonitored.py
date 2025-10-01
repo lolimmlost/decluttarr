@@ -1,8 +1,9 @@
 from unittest.mock import AsyncMock
+
 import pytest
 
-from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 from src.jobs.remove_unmonitored import RemoveUnmonitored
+from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 
 
 @pytest.mark.asyncio
@@ -59,12 +60,12 @@ from src.jobs.remove_unmonitored import RemoveUnmonitored
             [
                 {"downloadId": "1", "detail_item_id": 101},
                 {"downloadId": "2", "detail_item_id": 102},
-                {"downloadId": "3", "detail_item_id": None}
+                {"downloadId": "3", "detail_item_id": None},
             ],
             {101: True, 102: False},
-            ["2"]
+            ["2"],
         ),
-    ]
+    ],
 )
 async def test_find_affected_items(queue_data, monitored_ids, expected_download_ids):
     # Arrange

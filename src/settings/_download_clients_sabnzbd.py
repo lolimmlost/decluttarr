@@ -76,15 +76,11 @@ class SabnzbdClient:
 
     async def fetch_version(self):
         """Fetch the current SABnzbd version."""
-        logger.debug("_download_clients_sabnzbd.py/fetch_version: Getting SABnzbd Version")
-        params = {
-            "mode": "version",
-            "apikey": self.api_key,
-            "output": "json"
-        }
-        response = await make_request(
-            "get", self.api_url, self.settings, params=params
+        logger.debug(
+            "_download_clients_sabnzbd.py/fetch_version: Getting SABnzbd Version"
         )
+        params = {"mode": "version", "apikey": self.api_key, "output": "json"}
+        response = await make_request("get", self.api_url, self.settings, params=params)
         response_data = response.json()
         self.version = response_data.get("version", "unknown")
         logger.debug(
@@ -108,11 +104,7 @@ class SabnzbdClient:
             logger.debug(
                 "_download_clients_sabnzbd.py/check_sabnzbd_reachability: Checking if SABnzbd is reachable"
             )
-            params = {
-                "mode": "version",
-                "apikey": self.api_key,
-                "output": "json"
-            }
+            params = {"mode": "version", "apikey": self.api_key, "output": "json"}
             await make_request(
                 "get",
                 self.api_url,
@@ -132,11 +124,7 @@ class SabnzbdClient:
         logger.debug(
             "_download_clients_sabnzbd.py/check_connected: Checking if SABnzbd is connected"
         )
-        params = {
-            "mode": "status",
-            "apikey": self.api_key,
-            "output": "json"
-        }
+        params = {"mode": "status", "apikey": self.api_key, "output": "json"}
         response = await make_request(
             "get",
             self.api_url,
@@ -164,12 +152,10 @@ class SabnzbdClient:
 
     async def get_queue_items(self):
         """Fetch queue items from SABnzbd."""
-        logger.debug("_download_clients_sabnzbd.py/get_queue_items: Getting queue items")
-        params = {
-            "mode": "queue",
-            "apikey": self.api_key,
-            "output": "json"
-        }
+        logger.debug(
+            "_download_clients_sabnzbd.py/get_queue_items: Getting queue items"
+        )
+        params = {"mode": "queue", "apikey": self.api_key, "output": "json"}
         response = await make_request(
             "get",
             self.api_url,
@@ -181,12 +167,10 @@ class SabnzbdClient:
 
     async def get_history_items(self):
         """Fetch history items from SABnzbd."""
-        logger.debug("_download_clients_sabnzbd.py/get_history_items: Getting history items")
-        params = {
-            "mode": "history",
-            "apikey": self.api_key,
-            "output": "json"
-        }
+        logger.debug(
+            "_download_clients_sabnzbd.py/get_history_items: Getting history items"
+        )
+        params = {"mode": "history", "apikey": self.api_key, "output": "json"}
         response = await make_request(
             "get",
             self.api_url,
@@ -198,13 +182,15 @@ class SabnzbdClient:
 
     async def remove_download(self, nzo_id: str):
         """Remove a download from SABnzbd queue."""
-        logger.debug(f"_download_clients_sabnzbd.py/remove_download: Removing download {nzo_id}")
+        logger.debug(
+            f"_download_clients_sabnzbd.py/remove_download: Removing download {nzo_id}"
+        )
         params = {
             "mode": "queue",
             "name": "delete",
             "value": nzo_id,
             "apikey": self.api_key,
-            "output": "json"
+            "output": "json",
         }
         await make_request(
             "get",
@@ -215,13 +201,15 @@ class SabnzbdClient:
 
     async def pause_download(self, nzo_id: str):
         """Pause a download in SABnzbd queue."""
-        logger.debug(f"_download_clients_sabnzbd.py/pause_download: Pausing download {nzo_id}")
+        logger.debug(
+            f"_download_clients_sabnzbd.py/pause_download: Pausing download {nzo_id}"
+        )
         params = {
             "mode": "queue",
             "name": "pause",
             "value": nzo_id,
             "apikey": self.api_key,
-            "output": "json"
+            "output": "json",
         }
         await make_request(
             "get",
@@ -232,13 +220,15 @@ class SabnzbdClient:
 
     async def resume_download(self, nzo_id: str):
         """Resume a download in SABnzbd queue."""
-        logger.debug(f"_download_clients_sabnzbd.py/resume_download: Resuming download {nzo_id}")
+        logger.debug(
+            f"_download_clients_sabnzbd.py/resume_download: Resuming download {nzo_id}"
+        )
         params = {
             "mode": "queue",
             "name": "resume",
             "value": nzo_id,
             "apikey": self.api_key,
-            "output": "json"
+            "output": "json",
         }
         await make_request(
             "get",
@@ -249,12 +239,14 @@ class SabnzbdClient:
 
     async def retry_download(self, nzo_id: str):
         """Retry a failed download from SABnzbd history."""
-        logger.debug(f"_download_clients_sabnzbd.py/retry_download: Retrying download {nzo_id}")
+        logger.debug(
+            f"_download_clients_sabnzbd.py/retry_download: Retrying download {nzo_id}"
+        )
         params = {
             "mode": "retry",
             "value": nzo_id,
             "apikey": self.api_key,
-            "output": "json"
+            "output": "json",
         }
         await make_request(
             "get",
@@ -311,11 +303,7 @@ class SabnzbdClient:
 
     async def get_download_speed(self):
         """Get current download speed from SABnzbd status."""
-        params = {
-            "mode": "status",
-            "apikey": self.api_key,
-            "output": "json"
-        }
+        params = {"mode": "status", "apikey": self.api_key, "output": "json"}
         response = await make_request(
             "get",
             self.api_url,

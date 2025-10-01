@@ -1,6 +1,7 @@
 import logging
 from typing import Union
-from src.utils.common import make_request, extract_json_from_response
+
+from src.utils.common import extract_json_from_response, make_request
 from src.utils.log_setup import logger
 
 
@@ -31,8 +32,12 @@ class QueueManager:
             full_queue = await self._get_queue(full_queue=True)
             normal_queue = await self._get_queue(full_queue=False)
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"queue_manager.py/get_queue_items (full) to determine orphans: Current queue ({len(full_queue)} items) = {self.format_queue(full_queue)}")
-                logger.debug(f"queue_manager.py/get_queue_items (normal) to determine orphans: Current queue ({len(normal_queue)} items) = {self.format_queue(normal_queue)}")
+                logger.debug(
+                    f"queue_manager.py/get_queue_items (full) to determine orphans: Current queue ({len(full_queue)} items) = {self.format_queue(full_queue)}"
+                )
+                logger.debug(
+                    f"queue_manager.py/get_queue_items (normal) to determine orphans: Current queue ({len(normal_queue)} items) = {self.format_queue(normal_queue)}"
+                )
             queue_items = [fq for fq in full_queue if fq not in normal_queue]
         elif queue_scope == "full":
             queue_items = await self._get_queue(full_queue=True)
@@ -40,7 +45,9 @@ class QueueManager:
             error = f"Invalid queue_scope: {queue_scope}"
             raise ValueError(error)
         if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"queue_manager.py/get_queue_items ({queue_scope}): Current queue ({len(queue_items)} items) = {self.format_queue(queue_items)}")
+            logger.debug(
+                f"queue_manager.py/get_queue_items ({queue_scope}): Current queue ({len(queue_items)} items) = {self.format_queue(queue_items)}"
+            )
         return queue_items
 
     async def _get_queue(self, *, full_queue=False):
@@ -75,7 +82,9 @@ class QueueManager:
     async def _get_total_records_count(self, full_queue):
         # Get the total number of records from the queue using `arr.full_queue_parameter`
         params = {self.arr.full_queue_parameter: full_queue}
-        logger.debug("queue_manager.py/_get_total_records_count: Getting Total Records Count")
+        logger.debug(
+            "queue_manager.py/_get_total_records_count: Getting Total Records Count"
+        )
         total_records = await self.fetch_queue_field(params, key="totalRecords")
         return total_records
 
@@ -88,10 +97,11 @@ class QueueManager:
         if full_queue:
             params |= {self.arr.full_queue_parameter: full_queue}
 
-        logger.debug(f"queue_manager.py/_get_arr_records: Getting queue records ({total_records_count} items)")
+        logger.debug(
+            f"queue_manager.py/_get_arr_records: Getting queue records ({total_records_count} items)"
+        )
         records = await self.fetch_queue_field(params, key="records")
         return records
-
 
     async def fetch_queue_field(self, params, key: str | None = None):
         # Gets the response of the /queue endpoint and extracts a specific field from the json response
@@ -103,7 +113,6 @@ class QueueManager:
             headers={"X-Api-Key": self.arr.api_key},
         )
         return extract_json_from_response(response, key=key)
-
 
     def _filter_out_ignored_statuses(
         self, queue, ignored_statuses=("delay", "downloadClientUnavailable")
@@ -201,7 +210,6 @@ class QueueManager:
                 }
 
         return grouped_dict
-
 
     @staticmethod
     def filter_queue(

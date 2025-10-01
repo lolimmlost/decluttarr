@@ -1,7 +1,7 @@
 from packaging import version
 
 from src.settings._constants import ApiEndpoints, MinVersions
-from src.utils.common import make_request, wait_and_exit, extract_json_from_response
+from src.utils.common import extract_json_from_response, make_request, wait_and_exit
 from src.utils.log_setup import logger
 
 

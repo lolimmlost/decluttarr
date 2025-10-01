@@ -1,5 +1,7 @@
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
+
 from src.settings._instances import ArrInstance
 
 

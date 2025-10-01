@@ -3,6 +3,7 @@ from src.utils.log_setup import logger
 
 DISABLE_OVER_BANDWIDTH_USAGE = 0.8
 
+
 class RemoveSlow(RemovalJob):
     queue_scope = "normal"
     blocklist = True
@@ -62,15 +63,22 @@ class RemoveSlow(RemovalJob):
     def _checked_before(item, checked_ids):
         download_id = item.get("downloadId", "None")
         if download_id in checked_ids:
-            return True # One downloadId may occur in multiple items - only check once for all of them per iteration
+            return True  # One downloadId may occur in multiple items - only check once for all of them per iteration
         checked_ids.add(download_id)
         return False
 
     @staticmethod
     def _missing_keys(item) -> bool:
-        required_keys = {"downloadId", "size", "sizeleft", "status", "protocol", "download_client", "download_client_type"}
+        required_keys = {
+            "downloadId",
+            "size",
+            "sizeleft",
+            "status",
+            "protocol",
+            "download_client",
+            "download_client_type",
+        }
         return not required_keys.issubset(item)
-
 
     @staticmethod
     def _not_downloading(item) -> bool:
@@ -88,13 +96,16 @@ class RemoveSlow(RemovalJob):
 
         download_progress = await self._get_download_progress(item, download_id)
         previous_progress, increment, speed = self._compute_increment_and_speed(
-            download_id, download_progress,
+            download_id,
+            download_progress,
         )
 
         # For SABnzbd, use calculated speed from API data
         if item["download_client_type"] == "sabnzbd":
             try:
-                api_speed = await item["download_client"].get_item_download_speed(download_id)
+                api_speed = await item["download_client"].get_item_download_speed(
+                    download_id
+                )
                 if api_speed is not None:
                     speed = api_speed
                     logger.debug(f"SABnzbd API speed for {item['title']}: {speed} KB/s")
@@ -103,19 +114,22 @@ class RemoveSlow(RemovalJob):
         self.arr.tracker.download_progress[download_id] = download_progress
         return download_progress, previous_progress, increment, speed
 
-
     async def _get_download_progress(self, item, download_id):
         # Grabs the progress from qbit or SABnzbd if possible, else calculates it based on progress (imprecise)
         if item["download_client_type"] == "qbittorrent":
             try:
-                progress = await item["download_client"].fetch_download_progress(download_id)
+                progress = await item["download_client"].fetch_download_progress(
+                    download_id
+                )
                 if progress is not None:
                     return progress
             except Exception:  # noqa: BLE001
                 pass  # fall back below
         elif item["download_client_type"] == "sabnzbd":
             try:
-                progress = await item["download_client"].fetch_download_progress(download_id)
+                progress = await item["download_client"].fetch_download_progress(
+                    download_id
+                )
                 if progress is not None:
                     return progress
             except Exception:  # noqa: BLE001
@@ -152,10 +166,13 @@ class RemoveSlow(RemovalJob):
         # Adds the download client to the queue item
         for item in self.queue:
             download_client_name = item["downloadClient"]
-            download_client, download_client_type = self.settings.download_clients.get_download_client_by_name(download_client_name)
+            download_client, download_client_type = (
+                self.settings.download_clients.get_download_client_by_name(
+                    download_client_name
+                )
+            )
             item["download_client"] = download_client
             item["download_client_type"] = download_client_type
-
 
     async def update_bandwidth_usage(self):
         # Refreshes the current bandwidth usage for each client

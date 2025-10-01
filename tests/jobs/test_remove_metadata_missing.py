@@ -1,8 +1,7 @@
 import pytest
 
-from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 from src.jobs.remove_metadata_missing import RemoveMetadataMissing
-
+from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 
 
 # Test to check if items with the specific error message are included in affected items with parameterized data

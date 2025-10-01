@@ -1,4 +1,5 @@
-from unittest.mock import Mock, AsyncMock
+from unittest.mock import AsyncMock, Mock
+
 import pytest
 
 from src.settings._download_clients_sabnzbd import SabnzbdClient, SabnzbdClients
@@ -11,9 +12,7 @@ class TestSabnzbdClient:
         settings.min_versions = Mock()
         settings.min_versions.sabnzbd = "4.0.0"
         client = SabnzbdClient(
-            settings=settings,
-            base_url="http://sabnzbd:8080",
-            api_key="test_api_key"
+            settings=settings, base_url="http://sabnzbd:8080", api_key="test_api_key"
         )
         assert client.base_url == "http://sabnzbd:8080"
         assert client.api_url == "http://sabnzbd:8080/api"
@@ -29,7 +28,7 @@ class TestSabnzbdClient:
             settings=settings,
             base_url="http://sabnzbd:8080/",
             api_key="test_api_key",
-            name="Custom SABnzbd"
+            name="Custom SABnzbd",
         )
         assert client.base_url == "http://sabnzbd:8080"
         assert client.api_url == "http://sabnzbd:8080/api"
@@ -55,23 +54,14 @@ class TestSabnzbdClient:
         settings.min_versions = Mock()
         settings.min_versions.sabnzbd = "4.0.0"
         client = SabnzbdClient(
-            settings=settings,
-            base_url="http://sabnzbd:8080",
-            api_key="test_api_key"
+            settings=settings, base_url="http://sabnzbd:8080", api_key="test_api_key"
         )
         # Mock the get_queue_items method
-        client.get_queue_items = AsyncMock(return_value=[
-            {
-                "nzo_id": "test_id_1",
-                "mb": "1000",
-                "mbleft": "200"
-            },
-            {
-                "nzo_id": "test_id_2", 
-                "mb": "2000",
-                "mbleft": "1000"
-            }
-          ]
+        client.get_queue_items = AsyncMock(
+            return_value=[
+                {"nzo_id": "test_id_1", "mb": "1000", "mbleft": "200"},
+                {"nzo_id": "test_id_2", "mb": "2000", "mbleft": "1000"},
+            ]
         )
         # Test getting progress for existing download
         progress = await client.fetch_download_progress("test_id_1")
@@ -95,15 +85,12 @@ class TestSabnzbdClients:
         config = {
             "download_clients": {
                 "sabnzbd": [
+                    {"base_url": "http://sabnzbd1:8080", "api_key": "api_key_1"},
                     {
-                        "base_url": "http://sabnzbd1:8080",
-                        "api_key": "api_key_1"
-                    },
-                    {
-                        "base_url": "http://sabnzbd2:8080", 
+                        "base_url": "http://sabnzbd2:8080",
                         "api_key": "api_key_2",
-                        "name": "SABnzbd 2"
-                    }
+                        "name": "SABnzbd 2",
+                    },
                 ]
             }
         }
@@ -121,11 +108,7 @@ class TestSabnzbdClients:
 
     def test_init_invalid_config_format(self, caplog):
         """Test SabnzbdClients initialization with invalid config format."""
-        config = {
-            "download_clients": {
-                "sabnzbd": "not_a_list"
-            }
-        }
+        config = {"download_clients": {"sabnzbd": "not_a_list"}}
         settings = Mock()
         clients = SabnzbdClients(config, settings)
         assert len(clients) == 0
