@@ -1,4 +1,5 @@
 from pathlib import Path
+
 import requests
 from packaging import version
 
@@ -9,10 +10,10 @@ from src.settings._constants import (
     DetailItemSearchCommand,
     FullQueueParameter,
     MinVersions,
-    RefreshItemKey,
     RefreshItemCommand,
+    RefreshItemKey,
 )
-from src.utils.common import make_request, wait_and_exit, extract_json_from_response
+from src.utils.common import extract_json_from_response, make_request, wait_and_exit
 from src.utils.log_setup import logger
 
 
@@ -154,7 +155,7 @@ class ArrInstance:
         self.detail_item_id_key = self.detail_item_key + "Id"
         self.detail_item_ids_key = self.detail_item_key + "Ids"
         self.detail_item_search_command = getattr(DetailItemSearchCommand, arr_type)
-        if self.arr_type in ('radarr','sonarr'):
+        if self.arr_type in ("radarr", "sonarr"):
             self.refresh_item_key = getattr(RefreshItemKey, arr_type)
             self.refresh_item_id_key = self.refresh_item_key + "Id"
             self.refresh_item_command = getattr(RefreshItemCommand, arr_type)

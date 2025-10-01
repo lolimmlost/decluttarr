@@ -3,7 +3,6 @@ from pathlib import Path
 from src.jobs.removal_job import RemovalJob
 from src.utils.log_setup import logger
 
-
 # fmt: off
 STANDARD_EXTENSIONS = [
     # Movies, TV Shows (Radarr, Sonarr, Whisparr)
@@ -61,7 +60,11 @@ class RemoveBadFiles(RemovalJob):
             if not download_client_name:
                 continue
 
-            download_client, download_client_type = self.settings.download_clients.get_download_client_by_name(download_client_name)
+            download_client, download_client_type = (
+                self.settings.download_clients.get_download_client_by_name(
+                    download_client_name
+                )
+            )
             if not download_client or not download_client_type:
                 continue
 
@@ -69,13 +72,15 @@ class RemoveBadFiles(RemovalJob):
             if download_client_type != "qbittorrent":
                 continue
 
-            result.setdefault(download_client, {
-                "download_client_type": download_client_type,
-                "download_ids": set(),
-            })["download_ids"].add(item["downloadId"])
+            result.setdefault(
+                download_client,
+                {
+                    "download_client_type": download_client_type,
+                    "download_ids": set(),
+                },
+            )["download_ids"].add(item["downloadId"])
 
         return result
-
 
     async def _handle_qbit(self, qbit_client, hashes):
         """Handle qBittorrent-specific logic for marking files as 'Do Not Download'."""
@@ -86,7 +91,9 @@ class RemoveBadFiles(RemovalJob):
 
             self.arr.tracker.extension_checked.append(qbit_item["hash"])
 
-            if qbit_item["hash"].upper() in self.arr.tracker.protected: # Do not stop files in protected torrents
+            if (
+                qbit_item["hash"].upper() in self.arr.tracker.protected
+            ):  # Do not stop files in protected torrents
                 continue
 
             torrent_files = await self._get_active_files(qbit_client, qbit_item["hash"])
@@ -95,11 +102,15 @@ class RemoveBadFiles(RemovalJob):
             if not stoppable_files:
                 continue
 
-            await self._mark_files_as_stopped(qbit_client, qbit_item["hash"], stoppable_files)
+            await self._mark_files_as_stopped(
+                qbit_client, qbit_item["hash"], stoppable_files
+            )
             self._log_stopped_files(stoppable_files, qbit_item["name"])
 
             if self._all_files_stopped(torrent_files, stoppable_files):
-                logger.verbose(">>> All files in this torrent have been marked as 'Do not Download'.  Removing torrent.")
+                logger.verbose(
+                    ">>> All files in this torrent have been marked as 'Do not Download'.  Removing torrent."
+                )
                 affected_items.extend(self._match_queue_items(qbit_item["hash"]))
 
         return affected_items
@@ -113,28 +124,36 @@ class RemoveBadFiles(RemovalJob):
         Additionally, each download should be checked at least once (for bad extensions), and thereafter only if availability drops to less than 100%
         """
         return [
-            item for item in qbit_items
+            item
+            for item in qbit_items
             if (
-                    item.get("has_metadata")
-                    and item["state"] in {"downloading", "forcedDL", "stalledDL"}
-                    and (
-                            item["hash"] not in self.arr.tracker.extension_checked
-                            or item["availability"] < 1
-                    )
+                item.get("has_metadata")
+                and item["state"] in {"downloading", "forcedDL", "stalledDL"}
+                and (
+                    item["hash"] not in self.arr.tracker.extension_checked
+                    or item["availability"] < 1
+                )
             )
         ]
 
     @staticmethod
     async def _get_active_files(qbit_client, torrent_hash) -> list[dict]:
         """Return only files from the torrent that are still set to download, with file extension and name."""
-        files = await qbit_client.get_torrent_files(torrent_hash)  # Await the async method
+        files = await qbit_client.get_torrent_files(
+            torrent_hash
+        )  # Await the async method
         return [
             {
                 **f,  # Include all original file properties
-                "file_name": Path(f["name"]).name,  # Add proper filename (without folder)
-                "file_extension": Path(f["name"]).suffix,  # Add file_extension (e.g., .mp3)
+                "file_name": Path(
+                    f["name"]
+                ).name,  # Add proper filename (without folder)
+                "file_extension": Path(
+                    f["name"]
+                ).suffix,  # Add file_extension (e.g., .mp3)
             }
-            for f in files if f["priority"] > 0
+            for f in files
+            if f["priority"] > 0
         ]
 
     def _log_stopped_files(self, stopped_files, torrent_name) -> None:
@@ -164,7 +183,9 @@ class RemoveBadFiles(RemovalJob):
 
                 # Check if the file has low availability
                 if self._is_complete_partial(file):
-                    reasons.append(f"Low availability: {file['availability'] * 100:.1f}%")
+                    reasons.append(
+                        f"Low availability: {file['availability'] * 100:.1f}%"
+                    )
 
                 # Only add to stoppable_files if there are reasons to stop the file
                 if reasons:
@@ -188,8 +209,8 @@ class RemoveBadFiles(RemovalJob):
         file_size_mb = file.get("size", 0) / 1024 / 1024
 
         return (
-                any(keyword.lower() in file_path for keyword in BAD_KEYWORDS)
-                and file_size_mb <= BAD_KEYWORD_LIMIT
+            any(keyword.lower() in file_path for keyword in BAD_KEYWORDS)
+            and file_size_mb <= BAD_KEYWORD_LIMIT
         )
 
     @staticmethod
@@ -206,11 +227,15 @@ class RemoveBadFiles(RemovalJob):
     def _all_files_stopped(torrent_files, stoppable_files) -> bool:
         """Check if all files are either stopped (priority 0) or in the stoppable files list."""
         stoppable_file_indexes = {file[0]["index"] for file in stoppable_files}
-        return all(f["priority"] == 0 or f["index"] in stoppable_file_indexes for f in torrent_files)
+        return all(
+            f["priority"] == 0 or f["index"] in stoppable_file_indexes
+            for f in torrent_files
+        )
 
     def _match_queue_items(self, download_hash) -> list:
         """Find matching queue item(s) by downloadId (uppercase)."""
         return [
-            item for item in self.queue
+            item
+            for item in self.queue
             if item["downloadId"].upper() == download_hash.upper()
         ]

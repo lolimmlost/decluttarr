@@ -1,7 +1,7 @@
 import pytest
 
-from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 from src.jobs.remove_missing_files import RemoveMissingFiles
+from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 
 
 @pytest.mark.asyncio
@@ -10,15 +10,31 @@ from src.jobs.remove_missing_files import RemoveMissingFiles
     [
         (
             [  # valid failed torrent (warning + matching errorMessage)
-                {"downloadId": "1", "status": "warning", "errorMessage": "DownloadClientQbittorrentTorrentStateMissingFiles"},
-                {"downloadId": "2", "status": "warning", "errorMessage": "The download is missing files"},
-                {"downloadId": "3", "status": "warning", "errorMessage": "qBittorrent is reporting missing files"},
+                {
+                    "downloadId": "1",
+                    "status": "warning",
+                    "errorMessage": "DownloadClientQbittorrentTorrentStateMissingFiles",
+                },
+                {
+                    "downloadId": "2",
+                    "status": "warning",
+                    "errorMessage": "The download is missing files",
+                },
+                {
+                    "downloadId": "3",
+                    "status": "warning",
+                    "errorMessage": "qBittorrent is reporting missing files",
+                },
             ],
             ["1", "2", "3"],
         ),
         (
             [  # wrong status for errorMessage, should be ignored
-                {"downloadId": "1", "status": "failed", "errorMessage": "The download is missing files"},
+                {
+                    "downloadId": "1",
+                    "status": "failed",
+                    "errorMessage": "The download is missing files",
+                },
             ],
             [],
         ),
@@ -28,7 +44,11 @@ from src.jobs.remove_missing_files import RemoveMissingFiles
                     "downloadId": "1",
                     "status": "completed",
                     "statusMessages": [
-                        {"messages": ["No files found are eligible for import in /some/path"]},
+                        {
+                            "messages": [
+                                "No files found are eligible for import in /some/path"
+                            ]
+                        },
                     ],
                 },
                 {
@@ -54,11 +74,17 @@ from src.jobs.remove_missing_files import RemoveMissingFiles
         ),
         (
             [  # Mixed: one matching warning + one matching statusMessage
-                {"downloadId": "1", "status": "warning", "errorMessage": "The download is missing files"},
+                {
+                    "downloadId": "1",
+                    "status": "warning",
+                    "errorMessage": "The download is missing files",
+                },
                 {
                     "downloadId": "2",
                     "status": "completed",
-                    "statusMessages": [{"messages": ["No files found are eligible for import in foo"]}],
+                    "statusMessages": [
+                        {"messages": ["No files found are eligible for import in foo"]}
+                    ],
                 },
                 {"downloadId": "3", "status": "completed"},
             ],

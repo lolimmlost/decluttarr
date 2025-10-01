@@ -102,7 +102,9 @@ class JobManager:
                 f"job_manager.py/_check_client_connection_status: Checking if {client.name} is connected"
             )
             if not await client.check_connected():
-                logger.warning(f">>> {client.name} is disconnected. Skipping queue cleaning on {self.arr.name}.")
+                logger.warning(
+                    f">>> {client.name} is disconnected. Skipping queue cleaning on {self.arr.name}."
+                )
                 return False
         return True
 

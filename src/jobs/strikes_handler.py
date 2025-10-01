@@ -1,5 +1,7 @@
 import logging
+
 from src.utils.log_setup import logger
+
 
 class StrikesHandler:
     def __init__(self, job_name, arr, max_strikes):
@@ -9,7 +11,9 @@ class StrikesHandler:
         self.tracker.defective.setdefault(job_name, {})
 
     def filter_strike_exceeds(self, affected_downloads, queue):
-        recovered, removed_from_queue, paused = self._recover_downloads(affected_downloads, queue)
+        recovered, removed_from_queue, paused = self._recover_downloads(
+            affected_downloads, queue
+        )
         strike_exceeds = self._apply_strikes_and_filter(affected_downloads)
         if logger.isEnabledFor(logging.DEBUG):
             self.log_change(recovered, removed_from_queue, paused, strike_exceeds)
@@ -23,14 +27,21 @@ class StrikesHandler:
         if entry:
             entry["tracking_paused"] = True
             entry["pause_reason"] = reason
-            logger.debug("strikes_handler.py/StrikesHandler/pause_entry: Paused tracking for %s due to: %s", download_id, reason)
+            logger.debug(
+                "strikes_handler.py/StrikesHandler/pause_entry: Paused tracking for %s due to: %s",
+                download_id,
+                reason,
+            )
 
     def unpause_entry(self, download_id):
         entry = self.get_entry(download_id)
         if entry:
             entry.pop("tracking_paused", None)
             entry.pop("pause_reason", None)
-            logger.debug("strikes_handler.py/StrikesHandler/unpause_entry: Unpaused tracking for %s", download_id)
+            logger.debug(
+                "strikes_handler.py/StrikesHandler/unpause_entry: Unpaused tracking for %s",
+                download_id,
+            )
 
     # pylint: disable=too-many-locals, too-many-branches
     def log_change(self, recovered, removed_from_queue, paused, strike_exceeds):
@@ -57,7 +68,9 @@ class StrikesHandler:
             strikes = entry.get("strikes")
             if d_id in paused:
                 reason = entry.get("pause_reason", "unknown reason")
-                paused_entries.append(f"'{d_id}' [{strikes}/{self.max_strikes}, {reason}]")
+                paused_entries.append(
+                    f"'{d_id}' [{strikes}/{self.max_strikes}, {reason}]"
+                )
             elif d_id in strike_exceeds:
                 strike_exceeded.append(f"'{d_id}' [{strikes}/{self.max_strikes}]")
             elif strikes == 1:
@@ -71,26 +84,36 @@ class StrikesHandler:
         for d_id in removed_from_queue:
             removed_entries.append(d_id)
 
-        log_lines = [f"strikes_handler.py/log_change/defective tracker '{self.job_name}':"]
+        log_lines = [
+            f"strikes_handler.py/log_change/defective tracker '{self.job_name}':"
+        ]
 
         if added:
             log_lines.append(f"Added ({len(added)}): {', '.join(added)}")
         if incremented:
-            log_lines.append(f"Incremented ({len(incremented)}) [strikes]: {', '.join(incremented)}")
+            log_lines.append(
+                f"Incremented ({len(incremented)}) [strikes]: {', '.join(incremented)}"
+            )
         if paused_entries:
-            log_lines.append(f"Tracking Paused ({len(paused_entries)}) [strikes, reason]: {', '.join(paused_entries)}")
+            log_lines.append(
+                f"Tracking Paused ({len(paused_entries)}) [strikes, reason]: {', '.join(paused_entries)}"
+            )
         if removed_entries:
-            log_lines.append(f"Removed from queue ({len(removed_entries)}): {', '.join(removed_entries)}")
+            log_lines.append(
+                f"Removed from queue ({len(removed_entries)}): {', '.join(removed_entries)}"
+            )
         if recovered_entries:
-            log_lines.append(f"Recovered ({len(recovered_entries)}): {', '.join(recovered_entries)}")
+            log_lines.append(
+                f"Recovered ({len(recovered_entries)}): {', '.join(recovered_entries)}"
+            )
         if strike_exceeded:
-            log_lines.append(f"Strikes Exceeded ({len(strike_exceeded)}): {', '.join(strike_exceeded)}")
+            log_lines.append(
+                f"Strikes Exceeded ({len(strike_exceeded)}): {', '.join(strike_exceeded)}"
+            )
 
         logger.debug("\n".join(log_lines))
 
         return added, incremented, paused, recovered, strike_exceeds, removed_from_queue
-
-
 
     def _recover_downloads(self, affected_downloads, queue):
         """
@@ -130,7 +153,9 @@ class StrikesHandler:
                         log_level = logger.verbose
                         removed_from_queue.append(d_id)
 
-                    log_level(f">>> Job '{self.job_name,}' no longer flagging download (download {recovery_reason}): {entry['title']}")
+                    log_level(
+                        f">>> Job '{self.job_name,}' no longer flagging download (download {recovery_reason}): {entry['title']}"
+                    )
                     del job_tracker[d_id]
 
         return recovered, removed_from_queue, paused
@@ -154,7 +179,6 @@ class StrikesHandler:
         entry["strikes"] += 1
         return entry["strikes"]
 
-
     def _log_strike_status(self, title, strikes, strikes_left):
         # -1 is the first time no strikes are remaining and thus removal will be triggered
         # Since the removal itself sparks an appropriate message, we don't need to show the message again here on info-level
@@ -172,7 +196,7 @@ class StrikesHandler:
             title,
         )
 
-        if strikes_left <= -2: # noqa: PLR2004
+        if strikes_left <= -2:  # noqa: PLR2004
             logger.info(
                 '>>> 💡 Tip: Since this download should already have been removed in a previous iteration but keeps coming back, this indicates the blocking of the torrent does not work correctly. Consider turning on the option "Reject Blocklisted Torrent Hashes While Grabbing" on the indexer in the *arr app: %s',
                 title,

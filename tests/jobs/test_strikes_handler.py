@@ -2,7 +2,9 @@ import logging
 from unittest.mock import MagicMock
 
 import pytest
+
 from src.jobs.strikes_handler import StrikesHandler
+
 
 # pylint: disable=W0212
 # pylint: disable=too-many-locals
@@ -15,21 +17,17 @@ from src.jobs.strikes_handler import StrikesHandler
         "expected_in_tracker",
         "expected_in_paused",
         "expected_in_recovered",
-        "expected_in_removed_from_queue"
+        "expected_in_removed_from_queue",
     ),
     [
         # Not tracked previously, in queue, not affected → ignore
         ("HASH1", False, True, False, False, False, False, False),
-
         # Previously tracked, no longer in queue and not affected → recover with reason "no longer in queue"
         ("HASH2", True, False, False, False, False, False, True),
-
         # Previously tracked, still in queue but no longer affected → recover with reason "has recovered"
         ("HASH3", True, True, False, False, False, True, False),
-
         # Previously tracked, still in queue and still affected → remain tracked, no pause, no recover
         ("HASH4", True, True, True, True, False, False, False),
-
         # Previously tracked, still in queue, not affected but tracking paused → remain tracked in paused, no recover
         ("HASH5", True, True, False, True, True, False, False),
     ],
@@ -42,7 +40,7 @@ def test_recover_downloads(
     expected_in_tracker,
     expected_in_paused,
     expected_in_recovered,
-    expected_in_removed_from_queue
+    expected_in_removed_from_queue,
 ):
     # Setup mock tracker with or without the download
     strikes = 1 if already_in_tracker else None
@@ -56,9 +54,13 @@ def test_recover_downloads(
 
     tracker = MagicMock()
     tracker.defective = {
-        "remove_stalled": {
-            download_id: defective_entry,
-        } if already_in_tracker else {}
+        "remove_stalled": (
+            {
+                download_id: defective_entry,
+            }
+            if already_in_tracker
+            else {}
+        )
     }
 
     arr = MagicMock()
@@ -75,23 +77,32 @@ def test_recover_downloads(
         queue.append({"downloadId": download_id})
 
     # Unpack all three returned values from _recover_downloads
-    recovered, removed_from_queue, paused = handler._recover_downloads(affected_downloads, queue=queue)  # pylint: disable=W0212
+    recovered, removed_from_queue, paused = handler._recover_downloads(
+        affected_downloads, queue=queue
+    )  # pylint: disable=W0212
 
     is_in_tracker = download_id in tracker.defective["remove_stalled"]
-    assert is_in_tracker == expected_in_tracker, f"{download_id} tracker presence mismatch"
+    assert (
+        is_in_tracker == expected_in_tracker
+    ), f"{download_id} tracker presence mismatch"
 
     is_in_paused = download_id in paused
     assert is_in_paused == expected_in_paused, f"{download_id} paused presence mismatch"
 
     is_in_recovered = download_id in recovered
-    assert is_in_recovered == expected_in_recovered, f"{download_id} recovered presence mismatch"
+    assert (
+        is_in_recovered == expected_in_recovered
+    ), f"{download_id} recovered presence mismatch"
 
     is_in_recovered = download_id in recovered
-    assert is_in_recovered == expected_in_recovered, f"{download_id} recovered presence mismatch"
+    assert (
+        is_in_recovered == expected_in_recovered
+    ), f"{download_id} recovered presence mismatch"
 
     is_in_removed = download_id in removed_from_queue
-    assert is_in_removed == expected_in_removed_from_queue, f"{download_id} removed_from_queue presence mismatch"
-
+    assert (
+        is_in_removed == expected_in_removed_from_queue
+    ), f"{download_id} removed_from_queue presence mismatch"
 
 
 @pytest.mark.parametrize(
@@ -121,13 +132,12 @@ def test_apply_strikes_and_filter(
         "HASH1": {"title": "dummy"},
     }
 
-    result = handler._apply_strikes_and_filter(
-        affected_downloads
-    )
+    result = handler._apply_strikes_and_filter(affected_downloads)
     if expected_in_affected_downloads:
         assert "HASH1" in result
     else:
         assert "HASH1" not in result
+
 
 def test_log_change_logs_expected_strike_changes(caplog):
     handler = StrikesHandler(job_name="remove_stalled", arr=MagicMock(), max_strikes=3)
@@ -152,7 +162,14 @@ def test_log_change_logs_expected_strike_changes(caplog):
     log_messages = "\n".join(record.message for record in caplog.records)
 
     # Check category keywords exist
-    for keyword in ["Added", "Incremented", "Tracking Paused", "Removed from queue", "Recovered", "Strikes Exceeded"]:
+    for keyword in [
+        "Added",
+        "Incremented",
+        "Tracking Paused",
+        "Removed from queue",
+        "Recovered",
+        "Strikes Exceeded",
+    ]:
         assert keyword in log_messages
 
     # Check actual IDs appear somewhere in the logged messages

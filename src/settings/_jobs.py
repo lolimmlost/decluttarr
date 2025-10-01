@@ -109,7 +109,6 @@ class Jobs:
         )
         self.detect_deletions = JobParams()
 
-
     def _set_job_configs(self, config):
         # Populate jobs from YAML config
         for job_name in self.__dict__:

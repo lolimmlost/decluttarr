@@ -1,8 +1,9 @@
 import asyncio
+import copy
+import logging
 import sys
 import time
-import logging
-import copy
+
 import requests
 
 from src.utils.log_setup import logger
@@ -23,7 +24,11 @@ def sanitize_kwargs(data):
     if isinstance(data, dict):
         redacted = {}
         for key, value in data.items():
-            if key.lower() in {"username", "password", "x-api-key", "apikey", "cookies"} and value:
+            if (
+                key.lower()
+                in {"username", "password", "x-api-key", "apikey", "cookies"}
+                and value
+            ):
                 redacted[key] = "[**redacted**]"
             else:
                 redacted[key] = sanitize_kwargs(value)
@@ -34,7 +39,13 @@ def sanitize_kwargs(data):
 
 
 async def make_request(
-    method: str, endpoint: str, settings, timeout: int = 15, *, log_error=True, **kwargs,
+    method: str,
+    endpoint: str,
+    settings,
+    timeout: int = 15,
+    *,
+    log_error=True,
+    **kwargs,
 ) -> requests.Response:
     """
     A utility function to make HTTP requests (GET, POST, DELETE, PUT).
@@ -49,7 +60,6 @@ async def make_request(
                     f"common.py/make_request: [Test Run] Simulating {method.upper()} request to {endpoint} with kwargs={sanitized_kwargs}"
                 )
             return DummyResponse(text="Test run - no actual call made", status_code=200)
-
 
     try:
         if logger.isEnabledFor(logging.DEBUG):

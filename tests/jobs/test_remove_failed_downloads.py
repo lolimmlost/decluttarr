@@ -1,7 +1,7 @@
 import pytest
 
-from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 from src.jobs.remove_failed_downloads import RemoveFailedDownloads
+from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 
 
 # Test to check if items with "failed" status are included in affected items with parameterized data
@@ -12,14 +12,20 @@ from src.jobs.remove_failed_downloads import RemoveFailedDownloads
         (
             [
                 {"downloadId": "1", "status": "failed"},  # Item with failed status
-                {"downloadId": "2", "status": "completed"},  # Item with completed status
+                {
+                    "downloadId": "2",
+                    "status": "completed",
+                },  # Item with completed status
                 {"downloadId": "3"},  # No status field
             ],
             ["1"],  # Only the failed item should be affected
         ),
         (
             [
-                {"downloadId": "1", "status": "completed"},  # Item with completed status
+                {
+                    "downloadId": "1",
+                    "status": "completed",
+                },  # Item with completed status
                 {"downloadId": "2", "status": "completed"},
                 {"downloadId": "3", "status": "completed"},
             ],

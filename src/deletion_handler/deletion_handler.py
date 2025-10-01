@@ -1,9 +1,10 @@
 import asyncio
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
 from src.utils.log_setup import logger
 
 
@@ -24,7 +25,6 @@ class DeletionHandler(FileSystemEventHandler):
         deleted_file = event.src_path
         asyncio.run_coroutine_threadsafe(self._queue_delete(deleted_file), self.loop)
 
-
     async def _queue_delete(self, deleted_file):
         async with self._lock:
             self.deleted_files.add(deleted_file)
@@ -40,14 +40,18 @@ class DeletionHandler(FileSystemEventHandler):
         async with self._lock:
             # Copy and clear the deleted files set
             files_to_process = self.deleted_files.copy()
-            logger.debug(f"deletion_handler.py/_process_deletes_after_delay: Deleted files: {' '.join(files_to_process)}")
+            logger.debug(
+                f"deletion_handler.py/_process_deletes_after_delay: Deleted files: {' '.join(files_to_process)}"
+            )
             for handler in logger.handlers:
                 handler.flush()
             self.deleted_files.clear()
 
         # Extract parent folder paths, deduplicate them
         deletions = self._group_deletions_by_folder(files_to_process)
-        logger.debug(f"deletion_handler.py/_process_deletes_after_delay: Folders with deletes: {' '.join(deletions.keys())}")
+        logger.debug(
+            f"deletion_handler.py/_process_deletes_after_delay: Folders with deletes: {' '.join(deletions.keys())}"
+        )
 
         await self._handle_folders(deletions)
 
@@ -66,7 +70,7 @@ class DeletionHandler(FileSystemEventHandler):
                 logger.info(
                     f"Job 'detect_deletions' triggered media refresh on {self.arr.name} ({self.arr.base_url}): {refresh_item['title']}"
                 )
-                await self.arr.refresh_item(refresh_item['id'])
+                await self.arr.refresh_item(refresh_item["id"])
             else:
                 logger.verbose(
                     f"Job 'detect_deletions' detected a deleted file, but couldn't find a corresponding media item on {self.arr.name} ({self.arr.base_url})"
@@ -79,6 +83,7 @@ class DeletionHandler(FileSystemEventHandler):
         # For pytests to know when background task has finsished
         if self._process_task:
             await self._process_task
+
 
 class WatcherManager:
     # Checks which folders are set up on arr and sets a watcher on them for deletes
@@ -117,24 +122,25 @@ class WatcherManager:
                             f"Job 'detect_deletions' on {arr.name} ({arr.base_url}) does not have access to this path and will not monitor it: '{path}'"
                         )
                         logger.info(
-                            '>>> 💡 Tip: Make sure that the paths in decluttarr and in your arr instance are identical.'
+                            ">>> 💡 Tip: Make sure that the paths in decluttarr and in your arr instance are identical."
                         )
                         if self.settings.envs.in_docker:
                             logger.info(
-                                '>>> 💡 Tip: Make sure decluttarr and your arr instance have the same mount points'
+                                ">>> 💡 Tip: Make sure decluttarr and your arr instance have the same mount points"
                             )
 
         return folders_to_watch
 
     def set_watcher(self, arr, folder_to_watch):
-        """Adds a file deletion watcher for the specified folder and arr instance, creating an event handler to process deletion events and an observer to monitor the filesystem; starts the observer and stores both the handler and observer for later management
-        """
+        """Adds a file deletion watcher for the specified folder and arr instance, creating an event handler to process deletion events and an observer to monitor the filesystem; starts the observer and stores both the handler and observer for later management"""
         event_handler = DeletionHandler(arr, self.loop)
         observer = Observer()
         observer.schedule(event_handler, folder_to_watch, recursive=True)
         observer.start()
         self.handlers.append(event_handler)
-        logger.verbose(f"Job 'detect_deletions' started monitoring folder on {arr.name} ({arr.base_url}): {folder_to_watch}")
+        logger.verbose(
+            f"Job 'detect_deletions' started monitoring folder on {arr.name} ({arr.base_url}): {folder_to_watch}"
+        )
         self.observers.append(observer)
 
     def stop(self):

@@ -2,9 +2,10 @@
 import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
-from src.deletion_handler.deletion_handler import WatcherManager, DeletionHandler
+from src.deletion_handler.deletion_handler import DeletionHandler, WatcherManager
 
 
 @pytest.mark.asyncio
@@ -103,6 +104,7 @@ def test_group_deletions_by_folder():
     # Also check no extra keys
     assert set(deletions.keys()) == set(expected.keys())
 
+
 @pytest.mark.asyncio
 async def test_process_deletes_after_delay_clears_deleted_files(monkeypatch):
     """Tests that _process_deletes_after_delay clears deleted files and correctly processes their parent folders asynchronously."""
@@ -147,8 +149,6 @@ async def test_process_deletes_after_delay_clears_deleted_files(monkeypatch):
         for f in ["/tmp/folder1/file1.txt", "/tmp/folder2/file2.txt"]
     }
     assert set(arr.called) == expected_folders
-
-
 
 
 @pytest.mark.asyncio

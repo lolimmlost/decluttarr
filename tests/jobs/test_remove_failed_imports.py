@@ -1,8 +1,9 @@
 from unittest.mock import MagicMock
+
 import pytest
 
-from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 from src.jobs.remove_failed_imports import RemoveFailedImports
+from tests.jobs.utils import shared_fix_affected_items, shared_test_affected_items
 
 
 @pytest.mark.asyncio
@@ -141,7 +142,9 @@ async def test_find_affected_items_with_patterns(
     removal_job.job.message_patterns = patterns
 
     # Act and Assert (Shared)
-    affected_items = await shared_test_affected_items(removal_job, expected_download_ids)
+    affected_items = await shared_test_affected_items(
+        removal_job, expected_download_ids
+    )
 
     # Check if the correct downloadIds are in the affected items
     affected_download_ids = [item["downloadId"] for item in affected_items]

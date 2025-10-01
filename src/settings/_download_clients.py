@@ -80,7 +80,6 @@ class DownloadClients:
                     raise ValueError(error)
                 seen.add(name.lower())
 
-
     def get_download_client_by_name(
         self, name: str, download_client_type: str | None = None
     ):
@@ -115,7 +114,6 @@ class DownloadClients:
         }
         download_client_type = mapping.get(arr_download_client_implementation)
         return download_client_type
-
 
     def list_download_clients(self) -> dict[str, list[str]]:
         """

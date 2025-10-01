@@ -1,4 +1,4 @@
-from src.utils.common import make_request, extract_json_from_response
+from src.utils.common import extract_json_from_response, make_request
 
 
 class WantedManager:
@@ -16,7 +16,9 @@ class WantedManager:
         return await self._get_arr_records(missing_or_cutoff, total_records_count)
 
     async def _get_total_records_count(self, missing_or_cutoff: str) -> int:
-        total_records = await self.fetch_wanted_field(missing_or_cutoff, key="totalRecords")
+        total_records = await self.fetch_wanted_field(
+            missing_or_cutoff, key="totalRecords"
+        )
         return total_records
 
     async def _get_arr_records(self, missing_or_cutoff, total_records_count):
@@ -27,10 +29,14 @@ class WantedManager:
         sort_key = f"{self.arr.detail_item_key}s.lastSearchTime"
         params = {"page": "1", "pageSize": total_records_count, "sortKey": sort_key}
 
-        records = await self.fetch_wanted_field(missing_or_cutoff, params=params, key="records")
+        records = await self.fetch_wanted_field(
+            missing_or_cutoff, params=params, key="records"
+        )
         return records
 
-    async def fetch_wanted_field(self, missing_or_cutoff: str, params: dict | None = None, key: str | None = None):
+    async def fetch_wanted_field(
+        self, missing_or_cutoff: str, params: dict | None = None, key: str | None = None
+    ):
         # Gets the response of the /queue endpoint and extracts a specific field from the json response
         response = await make_request(
             method="GET",
