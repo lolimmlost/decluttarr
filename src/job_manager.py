@@ -40,10 +40,6 @@ class JobManager:
             )
 
             for client in download_clients:
-                logger.info(
-                    f"*** Running jobs on {client.name} ({client.base_url}) ***",
-                )
-
                 # Get jobs for this client
                 download_client_jobs = self._get_download_client_jobs_for_client(
                     client,
@@ -51,13 +47,15 @@ class JobManager:
                 )
 
                 if not any(job.job.enabled for job in download_client_jobs):
-                    logger.verbose(
-                        "Download Client Jobs: None triggered (No jobs active)",
-                    )
                     continue
 
+                logger.info(
+                    f"*** Running jobs on {client.name} ({client.base_url}) ***",
+                )
+
                 for download_client_job in download_client_jobs:
-                    items_detected += await download_client_job.run()
+                    if download_client_job.job.enabled:
+                        items_detected += await download_client_job.run()
 
         return items_detected
 
