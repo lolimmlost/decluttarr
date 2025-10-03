@@ -5,53 +5,59 @@ _Like this app? Thanks for giving it a_ ⭐️
 Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
 
 ## Table of contents
-- [Overview](#overview)
-- [Dependencies & Hints & FAQ](#dependencies--hints--faq)
-- [Getting started](#getting-started)
-  - [Running locally](#running-locally)
-  - [Running in docker](#running-in-docker)
-    - [Docker-compose with config file (recommended)](#docker-docker-compose-together-with-configyaml)
-    - [Docker-compose only](#docker-specifying-all-settings-in-docker-compose)
-  - [Config file](#config-file)
-- [Upgrading from V1 to V2](#upgrading-from-v1-to-v2)
-- [Explanation of the settings](#explanation-of-the-settings)
-  - [General](#general-settings)
-    - [LOG_LEVEL](#log_level)
-    - [TEST_RUN](#test_run)
-    - [TIMER](#timer)
-    - [SSL_VERIFICATION](#ssl_verification)
-    - [IGNORE_DOWNLOAD_CLIENTS](#ignore_download_clients)
-    - [PRIVATE_TRACKER_HANDLING / PUBLIC_TRACKER_HANDLING](#private_tracker_handling--public_tracker_handling)
-    - [OBSOLETE_TAG](#obsolete_tag)
-    - [PROTECTED_TAG](#protected_tag)
-  - [Job Defaults](#job-defaults)
-    - [MAX_STRIKES](#max_strikes)
-    - [MIN_DAYS_BETWEEN_SEARCHES](#min_days_between_searches)
-    - [MAX_CONCURRENT_SEARCHES](#max_concurrent_searches)
-  - [Jobs](#jobs)
-    - [REMOVE_BAD_FILES](#remove_bad_files)
-    - [REMOVE_FAILED_DOWNLOADS](#remove_failed_downloads)
-    - [REMOVE_FAILED_IMPORTS](#remove_failed_imports)
-    - [REMOVE_METADATA_MISSING](#remove_metadata_missing)
-    - [REMOVE_MISSING_FILES](#remove_missing_files)
-    - [REMOVE_ORPHANS](#remove_orphans)
-    - [REMOVE_SLOW](#remove_slow)
-    - [REMOVE_STALLED](#remove_stalled)
-    - [REMOVE_UNMONITORED](#remove_unmonitored)
-    - [REMOVE_COMPLETED](#remove_completed)
-    - [SEARCH_CUTOFF_UNMET](#search_unmet_cutoff)
-    - [SEARCH_MISSING](#search_missing)
-    - [DETECT_DELETIONS](#detect_deletions)
-  - [Instances](#arr-instances)
-    - [SONARR](#sonarr)
-    - [RADARR](#radarr)
-    - [READARR](#readarr)
-    - [LIDARR](#lidarr)
-    - [WHISPARR](#whisparr)
-  - [Downloaders](#download-clients)
-    - [QBITTORRENT](#qbittorrent)
-    - [SABNZBD](#sabnzbd)
-- [Disclaimer](#disclaimer)
+- [**Decluttarr**](#decluttarr)
+  - [Table of contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Dependencies \& Hints \& FAQ](#dependencies--hints--faq)
+  - [Getting started](#getting-started)
+    - [Running locally](#running-locally)
+    - [Running in docker](#running-in-docker)
+      - [Docker: Docker-compose together with Config.yaml](#docker-docker-compose-together-with-configyaml)
+      - [Docker: Specifying all settings in docker-compose](#docker-specifying-all-settings-in-docker-compose)
+    - [Config file](#config-file)
+  - [Upgrading from V1 to V2](#upgrading-from-v1-to-v2)
+  - [Decluttarr v2 is a major update with a cleaner config format and powerful new features. Here's what changed and how to upgrade.](#decluttarr-v2-is-a-major-update-with-a-cleaner-config-format-and-powerful-new-features-heres-what-changed-and-how-to-upgrade)
+    - [✨ What’s New](#-whats-new)
+    - [⚠️ Breaking Changes](#️-breaking-changes)
+    - [🛠️ How to Migrate](#️-how-to-migrate)
+  - [Explanation of the settings](#explanation-of-the-settings)
+    - [**General settings**](#general-settings)
+      - [LOG\_LEVEL](#log_level)
+      - [TEST\_RUN](#test_run)
+      - [TIMER](#timer)
+      - [SSL\_VERIFICATION](#ssl_verification)
+      - [IGNORE\_DOWNLOAD\_CLIENTS](#ignore_download_clients)
+      - [PRIVATE\_TRACKER\_HANDLING / PUBLIC\_TRACKER\_HANDLING](#private_tracker_handling--public_tracker_handling)
+      - [OBSOLETE\_TAG](#obsolete_tag)
+      - [PROTECTED\_TAG](#protected_tag)
+    - [**Job Defaults**](#job-defaults)
+      - [MAX\_STRIKES](#max_strikes)
+      - [MIN\_DAYS\_BETWEEN\_SEARCHES](#min_days_between_searches)
+      - [MAX\_CONCURRENT\_SEARCHES](#max_concurrent_searches)
+    - [**Jobs**](#jobs)
+      - [REMOVE\_BAD\_FILES](#remove_bad_files)
+      - [REMOVE\_FAILED\_DOWNLOADS](#remove_failed_downloads)
+      - [REMOVE\_FAILED\_IMPORTS](#remove_failed_imports)
+      - [REMOVE\_METADATA\_MISSING](#remove_metadata_missing)
+      - [REMOVE\_MISSING\_FILES](#remove_missing_files)
+      - [REMOVE\_ORPHANS](#remove_orphans)
+      - [REMOVE\_SLOW](#remove_slow)
+      - [REMOVE\_STALLED](#remove_stalled)
+      - [REMOVE\_UNMONITORED](#remove_unmonitored)
+      - [REMOVE\_COMPLETED](#remove_completed)
+      - [SEARCH\_UNMET\_CUTOFF](#search_unmet_cutoff)
+      - [SEARCH\_MISSING](#search_missing)
+      - [DETECT\_DELETIONS](#detect_deletions)
+    - [**Arr Instances**](#arr-instances)
+      - [Radarr](#radarr)
+      - [Sonarr](#sonarr)
+      - [Readarr](#readarr)
+      - [Lidarr](#lidarr)
+      - [Whisparr](#whisparr)
+    - [**Download Clients**](#download-clients)
+      - [QBITTORRENT](#qbittorrent)
+      - [SABNZBD](#sabnzbd)
+  - [Disclaimer](#disclaimer)
 
 ## Overview
 
@@ -588,14 +594,16 @@ This is the interesting section. It defines which job you want decluttarr to run
 
 #### REMOVE_COMPLETED
 
--   Steers whether completed downloads are removed from your download client's queue. This is particularly useful for cleaning up torrents that have finished seeding and are no longer needed.
+-   Steers whether completed downloads are removed from your download client's queue. This is particularly useful for cleaning up torrents that have finished seeding (the seeding criteria for time/ratio are met) and are no longer needed.
 -   Permissible Values:
-    -   `target_tags`: A list of tags to identify completed items for removal.
-    -   `target_categories`: A list of categories to identify completed items for removal.
+  -   `target_tags`: A list of tags to identify completed items for removal.
+      - Example: `target_tags: ["Obsolete", "Imported"]` - removes downloads that are both completed and tagged with specified tags. The tags may be applied by other jobs, arrs or manually in the download client.
+  -   `target_categories`: A list of categories to identify completed items for removal.
+      - Example: `target_categories: ["autobrr"]` - removes downloads that are both completed and belong to the specified categories. Different apps may use categories to classify downloads (e.g., "autobrr" for downloads initiated by autobrr).
 -   Is Mandatory: No (Defaults to False)
 -   Note:
     -   This job currently only supports qBittorrent.
-    -   It's useful for cleaning up items that might have been tagged as "obsolete" by other jobs in this tool, once they have finished seeding or automations for boosting ratio in private trackers.
+    -   It's useful for cleaning up items that might have been tagged as "obsolete" by other jobs in this tool, once the trackers requirements have been met. It can also be used for automations for boosting ratio in private trackers (autobrr adds new downloads, this job removes them once they are completed).
 
 #### SEARCH_UNMET_CUTOFF
 
