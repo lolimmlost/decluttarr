@@ -1,5 +1,7 @@
 """Removes completed torrents that have specific tags/categories."""
 
+from typing import ClassVar
+
 from src.jobs.download_client_removal_job import DownloadClientRemovalJob
 from src.utils.log_setup import logger
 
@@ -12,12 +14,15 @@ COMPLETED_STATES = [
 class RemoveCompleted(DownloadClientRemovalJob):
     """Job to remove completed torrents that match specific tags or categories."""
 
+    SUPPORTED_CLIENTS: ClassVar[list[str]] = ["qbittorrent"]
+
     async def run(self) -> int:
-        if self.download_client_type == "sabnzbd":
+        if self.download_client_type not in self.SUPPORTED_CLIENTS:
             logger.debug(
-                f"Skipping job '{self.job_name}' for Usenet client {self.download_client.name}.",
+                f"remove_completed.py/run: Skipping job '{self.job_name}' for unsupported client {self.download_client.name}.",
             )
             return 0
+
         return await super().run()
 
     async def _get_items_to_remove(self, items: list) -> list:
