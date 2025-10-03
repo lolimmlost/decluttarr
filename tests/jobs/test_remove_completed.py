@@ -154,7 +154,7 @@ async def test_remove_completed_skipped_for_sabnzbd():
         result = await job.run()
         assert result == 0
         mock_log.assert_called_with(
-            "Skipping job 'remove_completed' for Usenet client mock_client_name.",
+            "remove_completed.py/run: Skipping job 'remove_completed' for unsupported client mock_client_name.",
         )
 
 
