@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 
-from src.utils.common import make_request
 from src.utils.log_setup import logger
 
 
@@ -108,45 +107,13 @@ class DownloadClientRemovalJob(ABC):
             item_name = item.get("name", "unknown")
             try:
                 if self.download_client_type == "qbittorrent":
-                    await self._remove_qbittorrent_item(item)
+                    download_hash = item["hash"]
+                    await self.download_client.remove_download(download_hash)
                 elif self.download_client_type == "sabnzbd":
-                    await self._remove_sabnzbd_item(item)
+                    nzo_id = item["nzo_id"]
+                    await self.download_client.remove_download(nzo_id)
 
-                logger.info(
-                    f"Removed download: {item_name}",
-                )
+                logger.info(f"Removed download: {item_name}")
 
             except Exception as e:
                 logger.error(f"Failed to remove {item_name}: {e}")
-
-    async def _remove_qbittorrent_item(self, item: dict) -> None:
-        """Remove a torrent from qBittorrent."""
-        download_id = item["hash"].lower()
-        data = {
-            "hashes": download_id,
-            "deleteFiles": "true",
-        }
-        await make_request(
-            "post",
-            f"{self.download_client.api_url}/torrents/delete",
-            self.settings,
-            data=data,
-            cookies=self.download_client.cookie,
-        )
-
-    async def _remove_sabnzbd_item(self, item: dict) -> None:
-        """Remove a download from SABnzbd history."""
-        download_id = item["nzo_id"]
-        params = {
-            "mode": "history",
-            "name": "delete",
-            "value": download_id,
-            "apikey": self.download_client.api_key,
-            "output": "json",
-        }
-        await make_request(
-            "get",
-            self.download_client.api_url,
-            self.settings,
-            params=params,
-        )
