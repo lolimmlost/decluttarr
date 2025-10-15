@@ -175,7 +175,7 @@ async def test_remove_completed_test_run_enabled():
 
     with patch.object(
         job,
-        "_remove_qbittorrent_item",
+        "_remove_items",
         new_callable=AsyncMock,
     ) as mock_remove:
         result = await job.run()
@@ -200,6 +200,7 @@ async def test_remove_completed_with_protected_item(protected_on):
         item_properties["tags"] += ",tag1"
     else:
         item_properties["category"] = "protected"
+        target_categories = ["protected"]
 
     item = {**ITEM_DEFAULTS, **item_properties}
 
@@ -212,7 +213,7 @@ async def test_remove_completed_with_protected_item(protected_on):
 
     with patch.object(
         job,
-        "_remove_qbittorrent_item",
+        "_remove_items",
         new_callable=AsyncMock,
     ) as mock_remove:
         result = await job.run()
