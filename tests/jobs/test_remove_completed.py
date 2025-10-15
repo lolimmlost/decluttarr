@@ -149,18 +149,17 @@ async def test_remove_completed_skipped_for_sabnzbd():
     client = create_mock_download_client([], client_name="mock_client_name")
     job = RemoveCompleted(client, "sabnzbd", settings, "remove_completed")
 
-    # We check the log message instead of mocking the super run
-    with patch("src.jobs.remove_completed.logger.debug") as mock_log:
-        result = await job.run()
-        assert result == 0
-        mock_log.assert_called_with(
-            "remove_completed.py/run: Skipping job 'remove_completed' for unsupported client mock_client_name.",
-        )
+    # Test that the job returns 0 for unsupported clients
+    result = await job.run()
+    assert result == 0
+
+    # Verify that no client methods were called since the job should be skipped
+    client.get_qbit_items.assert_not_called()
 
 
 @pytest.mark.asyncio
 async def test_remove_completed_test_run_enabled():
-    """Test that no items are removed when test_run is enabled."""
+    """Test that no items are actually removed when test_run is enabled."""
     item = {
         **ITEM_DEFAULTS,
         "ratio": 2,
@@ -174,16 +173,17 @@ async def test_remove_completed_test_run_enabled():
     job = RemoveCompleted(client, "qbittorrent", settings, "remove_completed")
 
     with patch.object(
-        job,
-        "_remove_items",
+        client,
+        "remove_download",
         new_callable=AsyncMock,
-    ) as mock_remove:
+    ) as mock_client_remove:
         result = await job.run()
 
-        assert (
-            result == 1
-        )  # The job should still report the number of items it would have removed
-        mock_remove.assert_not_called()
+        # The job should still report the number of items it would have removed
+        assert result == 1
+
+        # But no actual removal should occur on the client
+        mock_client_remove.assert_not_called()
 
 
 @pytest.mark.asyncio
