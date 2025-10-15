@@ -10,6 +10,7 @@ from src.jobs.remove_slow import RemoveSlow
 from src.jobs.remove_stalled import RemoveStalled
 from src.jobs.remove_unmonitored import RemoveUnmonitored
 from src.jobs.search_handler import SearchHandler
+from src.settings._download_clients import DOWNLOAD_CLIENT_TYPES
 from src.utils.log_setup import logger
 from src.utils.queue_manager import QueueManager
 
@@ -32,7 +33,7 @@ class JobManager:
             return None
 
         items_detected = 0
-        for download_client_type in ["qbittorrent", "sabnzbd"]:
+        for download_client_type in DOWNLOAD_CLIENT_TYPES:
             download_clients = getattr(
                 self.settings.download_clients,
                 download_client_type,
