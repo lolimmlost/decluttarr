@@ -586,16 +586,27 @@ This is the interesting section. It defines which job you want decluttarr to run
 
 #### REMOVE_COMPLETED
 
--   Steers whether completed downloads are removed from your download client's queue. This is particularly useful for cleaning up torrents that have finished seeding (the seeding criteria for time/ratio are met) and are no longer needed.
+-   Removes completed downloads from the download client's queue when they meet your selection criteria (tags and/or categories).
+-   What "completed" means:
+    -   Downloads are considered completed when the seeding goals configured in your download client are met: either the ratio limit or the seeding time limit (per-torrent overrides or the global limits).
+-   Type: Boolean or Dict
 -   Permissible Values:
-  -   `target_tags`: A list of tags to identify completed items for removal.
-      - Example: `target_tags: ["Obsolete", "Imported"]` - removes downloads that are both completed and tagged with specified tags. The tags may be applied by other jobs, arrs or manually in the download client.
-  -   `target_categories`: A list of categories to identify completed items for removal.
-      - Example: `target_categories: ["autobrr"]` - removes downloads that are both completed and belong to the specified categories. Different apps may use categories to classify downloads (e.g., "autobrr" for downloads initiated by autobrr).
+    -   If Bool: True, False
+    -   If Dict:
+        -   `target_tags`: List of tag names to match
+        -   `target_categories`: List of category names to match
+-   Matching logic:
+    -   Requires at least one of `target_tags` or `target_categories`. If neither is provided, nothing will be removed.
+    -   A torrent must be completed AND match (category IN `target_categories`) OR (has any tag IN `target_tags`).
+    -   If both tags and categories are provided, the condition is OR between them.
 -   Is Mandatory: No (Defaults to False)
--   Note:
+-   Notes:
     -   This job currently only supports qBittorrent.
-    -   It's useful for cleaning up items that might have been tagged as "obsolete" by other jobs in this tool, once the trackers requirements have been met. It can also be used for automations for boosting ratio in private trackers (autobrr adds new downloads, this job removes them once they are completed).
+    -   Works great together with `obsolete_tag`: have other jobs tag torrents (e.g., "Obsolete") and let this job remove them once completed.
+    -   Why not set "Remove torrent and its files" upon reaching seeding goals in download client?
+        -   This setting is discouraged by *arrs and you will get warnings about it.
+        -   You get more granular control.
+        -   You can use this job to clean up after other apps like autobrr that do not have any torrent management features.
 
 #### SEARCH_UNMET_CUTOFF
 
