@@ -1,3 +1,4 @@
+ # pylint: disable=W0212
 """Tests for the remove_done_seeding job."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
