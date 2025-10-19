@@ -11,7 +11,7 @@ class Envs:
         self.use_config_yaml = False  # Overwritten later if config file exists
 
     def config_as_yaml(self):
-        return get_config_as_yaml(self.__dict__)
+        return get_config_as_yaml(vars(self), internal_attributes={"in_docker"})
 
 
 class Paths:
