@@ -1,19 +1,19 @@
-"""Tests for the remove_completed job."""
+"""Tests for the remove_done_seeding job."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.jobs.remove_completed import COMPLETED_STATES, RemoveCompleted
+from src.jobs.remove_done_seeding import COMPLETED_STATES, RemoveDoneSeeding
 
 
 def create_mock_settings(target_tags=None, target_categories=None):
     """Create mock settings for testing."""
     settings = MagicMock()
     settings.jobs = MagicMock()
-    settings.jobs.remove_completed.enabled = True
-    settings.jobs.remove_completed.target_tags = target_tags or []
-    settings.jobs.remove_completed.target_categories = target_categories or []
+    settings.jobs.remove_done_seeding.enabled = True
+    settings.jobs.remove_done_seeding.target_tags = target_tags or []
+    settings.jobs.remove_done_seeding.target_categories = target_categories or []
     settings.general = MagicMock()
     settings.general.protected_tag = "protected"
     return settings
@@ -119,19 +119,19 @@ ITEM_DEFAULTS = {
         ),
     ],
 )
-async def test_remove_completed_logic(
+async def test_remove_done_seeding_logic(
     item_properties: dict,
     target_tags: list,
     target_categories: list,
     should_be_removed: bool,
 ):
-    """Test the logic of the remove_completed job with various scenarios."""
+    """Test the logic of the remove_done_seeding job with various scenarios."""
     item = {**ITEM_DEFAULTS, **item_properties, "name": "test_item"}
 
     settings = create_mock_settings(target_tags, target_categories)
     client = create_mock_download_client([item])
 
-    job = RemoveCompleted(client, "qbittorrent", settings, "remove_completed")
+    job = RemoveDoneSeeding(client, "qbittorrent", settings, "remove_done_seeding")
 
     items_to_remove = await job._get_items_to_remove(await client.get_qbit_items())
 
@@ -143,11 +143,11 @@ async def test_remove_completed_logic(
 
 
 @pytest.mark.asyncio
-async def test_remove_completed_skipped_for_sabnzbd():
-    """Test that the remove_completed job is skipped for SABnzbd clients."""
+async def test_remove_done_seeding_skipped_for_sabnzbd():
+    """Test that the remove_done_seeding job is skipped for SABnzbd clients."""
     settings = create_mock_settings()
     client = create_mock_download_client([], client_name="mock_client_name")
-    job = RemoveCompleted(client, "sabnzbd", settings, "remove_completed")
+    job = RemoveDoneSeeding(client, "sabnzbd", settings, "remove_done_seeding")
 
     # Test that the job returns 0 for unsupported clients
     result = await job.run()
@@ -158,7 +158,7 @@ async def test_remove_completed_skipped_for_sabnzbd():
 
 
 @pytest.mark.asyncio
-async def test_remove_completed_test_run_enabled():
+async def test_remove_done_seeding_test_run_enabled():
     """Test that no items are actually removed when test_run is enabled."""
     item = {
         **ITEM_DEFAULTS,
@@ -170,7 +170,7 @@ async def test_remove_completed_test_run_enabled():
     settings = create_mock_settings(target_tags=["tag1"])
     settings.general.test_run = True
     client = create_mock_download_client([item])
-    job = RemoveCompleted(client, "qbittorrent", settings, "remove_completed")
+    job = RemoveDoneSeeding(client, "qbittorrent", settings, "remove_done_seeding")
 
     with patch.object(
         client,
@@ -188,7 +188,7 @@ async def test_remove_completed_test_run_enabled():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("protected_on", ["tag", "category"])
-async def test_remove_completed_with_protected_item(protected_on):
+async def test_remove_done_seeding_with_protected_item(protected_on):
     """Test that items with a protected tag or category are not removed."""
     item_properties = {"ratio": 2, "ratio_limit": 2, "name": "protected_item"}
     target_tags = ["tag1"]
@@ -209,7 +209,7 @@ async def test_remove_completed_with_protected_item(protected_on):
         target_categories=target_categories,
     )
     client = create_mock_download_client([item])
-    job = RemoveCompleted(client, "qbittorrent", settings, "remove_completed")
+    job = RemoveDoneSeeding(client, "qbittorrent", settings, "remove_done_seeding")
 
     with patch.object(
         job,
@@ -224,7 +224,9 @@ async def test_remove_completed_with_protected_item(protected_on):
 @pytest.mark.asyncio
 async def test_is_completed_logic():
     """Test the internal _is_completed logic with different states and limits."""
-    job = RemoveCompleted(MagicMock(), "qbittorrent", MagicMock(), "remove_completed")
+    job = RemoveDoneSeeding(
+        MagicMock(), "qbittorrent", MagicMock(), "remove_done_seeding"
+    )
 
     # Completed states
     for state in COMPLETED_STATES:

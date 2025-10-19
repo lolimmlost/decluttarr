@@ -17,7 +17,7 @@ job_defaults:
 jobs:
   remove_bad_files:
     # keep_archives: true
-  remove_completed:
+  remove_done_seeding:
     # target_tags:
     #   - "Obsolete"
     # target_categories:

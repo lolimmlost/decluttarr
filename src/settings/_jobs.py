@@ -89,7 +89,7 @@ class Jobs:
 
     def _set_job_defaults(self):
         self.remove_bad_files = JobParams(keep_archives=self.job_defaults.keep_archives)
-        self.remove_completed = JobParams(target_tags=self.job_defaults.target_tags)
+        self.remove_done_seeding = JobParams(target_tags=self.job_defaults.target_tags)
         self.remove_failed_downloads = JobParams()
         self.remove_failed_imports = JobParams(
             message_patterns=self.job_defaults.message_patterns,

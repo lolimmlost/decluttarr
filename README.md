@@ -38,7 +38,7 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
     - [REMOVE_SLOW](#remove_slow)
     - [REMOVE_STALLED](#remove_stalled)
     - [REMOVE_UNMONITORED](#remove_unmonitored)
-    - [REMOVE_COMPLETED](#remove_completed)
+    - [REMOVE_DONE_SEEDING](#remove_done_seeding)
     - [SEARCH_CUTOFF_UNMET](#search_unmet_cutoff)
     - [SEARCH_MISSING](#search_missing)
     - [DETECT_DELETIONS](#detect_deletions)
@@ -68,7 +68,7 @@ Feature overview:
 -   Removing downloads that are repeatedly have been found to be slow (remove_slow)
 -   Removing downloads that are stalled (remove_stalled)
 -   Removing downloads belonging to movies/series/albums etc. that have been marked as "unmonitored" (remove_unmonitored)
--   Removing completed downloads from your download client that match certain criteria (remove_completed)
+-   Removing completed downloads from your download client that match certain criteria (remove_done_seeding)
 -   Periodically searching for better content on movies/series/albums etc. where cutoff has not been reached yet (search_cutoff_unmet)
 -   Periodically searching for missing content that has not yet been found (search_missing)
 
@@ -227,7 +227,7 @@ services:
       # As written above, these can also be set as Job Defaults so you don't have to specify them as granular as below.
       # REMOVE_BAD_FILES: |
       #   keep_archives: True
-      # REMOVE_COMPLETED: |
+      # REMOVE_DONE_SEEDING: |
       #   target_tags:
       #     - "Obsolete"
       #   target_categories:
@@ -501,11 +501,12 @@ This is the interesting section. It defines which job you want decluttarr to run
       - This may be helpful if you use a tool such as [unpackerr](https://github.com/Unpackerr/unpackerr) that can handle it
       - However, you may also find that these packages may contain bad/malicious files (which will not removed by decluttarr)
 
-#### REMOVE_COMPLETED
+#### REMOVE_DONE_SEEDING
 
--   Removes completed downloads from the download client's queue when they meet your selection criteria (tags and/or categories).
--   What "completed" means:
-    -   Downloads are considered completed when the seeding goals configured in your download client are met: either the ratio limit or the seeding time limit (per-torrent overrides or the global limits).
+-   Removes downloads that are completed and are done with seeding from the download client's queue when they meet your selection criteria (tags and/or categories).
+-   "Done Seeding" means the seeding goals configured in your download client are met: 
+      - Either the ratio limit is reached
+      - Or the seeding time limit (per-torrent overrides or the global limits).
 -   Type: Boolean or Dict
 -   Permissible Values:
     -   If Bool: True, False

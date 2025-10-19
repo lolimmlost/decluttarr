@@ -11,7 +11,7 @@ COMPLETED_STATES = [
 ]
 
 
-class RemoveCompleted(DownloadClientRemovalJob):
+class RemoveDoneSeeding(DownloadClientRemovalJob):
     """Job to remove completed torrents that match specific tags or categories."""
 
     SUPPORTED_CLIENTS: ClassVar[list[str]] = ["qbittorrent"]
@@ -19,7 +19,7 @@ class RemoveCompleted(DownloadClientRemovalJob):
     async def run(self) -> int:
         if self.download_client_type not in self.SUPPORTED_CLIENTS:
             logger.debug(
-                f"remove_completed.py/run: Skipping job '{self.job_name}' for unsupported client {self.download_client.name}.",
+                f"remove_done_seeding.py/run: Skipping job '{self.job_name}' for unsupported client {self.download_client.name}.",
             )
             return 0
 
@@ -34,7 +34,7 @@ class RemoveCompleted(DownloadClientRemovalJob):
 
         if not target_tags and not target_categories:
             logger.debug(
-                "remove_completed.py/_get_items_to_remove: No target tags or categories specified for remove_completed job.",
+                "remove_done_seeding.py/_get_items_to_remove: No target tags or categories specified for remove_done_seeding job.",
             )
             return []
 
@@ -47,7 +47,7 @@ class RemoveCompleted(DownloadClientRemovalJob):
 
         for item in items_to_remove:
             logger.debug(
-                f"remove_completed.py/_get_items_to_remove: Found completed item to remove: {item.get('name', 'unknown')}",
+                f"remove_done_seeding.py/_get_items_to_remove: Found completed item to remove: {item.get('name', 'unknown')}",
             )
 
         return items_to_remove

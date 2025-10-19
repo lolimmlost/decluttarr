@@ -28,7 +28,7 @@ CONFIG_MAPPING = {
     ],
     "jobs": [
         "REMOVE_BAD_FILES",
-        "REMOVE_COMPLETED",
+        "REMOVE_DONE_SEEDING",
         "REMOVE_FAILED_DOWNLOADS",
         "REMOVE_FAILED_IMPORTS",
         "REMOVE_METADATA_MISSING",

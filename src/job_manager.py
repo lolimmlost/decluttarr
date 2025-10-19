@@ -1,6 +1,6 @@
 # Cleans the download queue
 from src.jobs.remove_bad_files import RemoveBadFiles
-from src.jobs.remove_completed import RemoveCompleted
+from src.jobs.remove_done_seeding import RemoveDoneSeeding
 from src.jobs.remove_failed_downloads import RemoveFailedDownloads
 from src.jobs.remove_failed_imports import RemoveFailedImports
 from src.jobs.remove_metadata_missing import RemoveMetadataMissing
@@ -176,7 +176,7 @@ class JobManager:
         Each job is included if the corresponding attribute exists and is truthy in settings.jobs.
         """
         download_client_job_classes = {
-            "remove_completed": RemoveCompleted,
+            "remove_done_seeding": RemoveDoneSeeding,
         }
 
         jobs = []
