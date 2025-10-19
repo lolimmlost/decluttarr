@@ -75,6 +75,9 @@ class ArrInstances(list):
             "detail_item_id_key",
             "detail_item_ids_key",
             "detail_item_search_command",
+            "refresh_item_key",
+            "refresh_item_id_key",
+            "refresh_item_command",
         }
 
         outputs = []
