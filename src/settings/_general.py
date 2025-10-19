@@ -15,7 +15,7 @@ class General:
     ignored_download_clients: list = []
     private_tracker_handling: str = "remove"
     public_tracker_handling: str = "remove"
-    obsolete_tag: str = None
+    obsolete_tag: str = "Obsolete"
     protected_tag: str = "Keep"
 
     def __init__(self, config):
@@ -46,7 +46,6 @@ class General:
         self.public_tracker_handling = self._validate_tracker_handling(
             self.public_tracker_handling, "public_tracker_handling"
         )
-        self.obsolete_tag = self._determine_obsolete_tag(self.obsolete_tag)
 
         validate_data_types(self)
         self._remove_none_attributes()
@@ -67,17 +66,10 @@ class General:
             return "remove"
         return value
 
-    def _determine_obsolete_tag(self, obsolete_tag):
-        """Set obsolete tag to "obsolete", only if none is provided and the tag is needed for handling."""
-        if obsolete_tag is None and (
-            self.private_tracker_handling == "obsolete_tag"
-            or self.public_tracker_handling == "obsolete_tag"
-        ):
-            return "Obsolete"
-        return obsolete_tag
-
     def config_as_yaml(self):
         """Log all general settings."""
-        return get_config_as_yaml(
+        config_yaml = get_config_as_yaml(
             vars(self),
         )
+        return config_yaml
+
