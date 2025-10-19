@@ -16,7 +16,7 @@ class Settings:
         self.envs = Envs()
         config = get_user_config(self)
         self.general = General(config)
-        self.jobs = Jobs(config)
+        self.jobs = Jobs(config, self)
         self.download_clients = DownloadClients(config, self)
         self.instances = ArrInstances(config, self)
         configure_logging(self)

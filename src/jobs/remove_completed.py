@@ -34,7 +34,7 @@ class RemoveCompleted(DownloadClientRemovalJob):
 
         if not target_tags and not target_categories:
             logger.debug(
-                "No target tags or categories specified for remove_completed job.",
+                "remove_completed.py/_get_items_to_remove: No target tags or categories specified for remove_completed job.",
             )
             return []
 
@@ -47,7 +47,7 @@ class RemoveCompleted(DownloadClientRemovalJob):
 
         for item in items_to_remove:
             logger.debug(
-                f"Found completed item to remove: {item.get('name', 'unknown')}",
+                f"remove_completed.py/_get_items_to_remove: Found completed item to remove: {item.get('name', 'unknown')}",
             )
 
         return items_to_remove
