@@ -72,4 +72,3 @@ class General:
             vars(self),
         )
         return config_yaml
-
