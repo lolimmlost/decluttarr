@@ -32,10 +32,6 @@ class JobParams:
         self.max_concurrent_searches = max_concurrent_searches
         self.min_days_between_searches = min_days_between_searches
 
-        # if not self.max_concurrent_searches <= 0:
-        #     logger.warning(f"Job setting 'max_concurrent_searches' must be an integer greater 0. Found: {str(self.max_concurrent_searches)}. Using default: 3")
-        #     self.max_concurrent_searches = 3
-
         # Remove attributes that are None to keep the object clean
         self._remove_none_attributes()
 
@@ -59,13 +55,7 @@ class JobDefaults:
     def __init__(self, config):
         job_defaults_config = config.get("job_defaults", {})
         self.max_strikes = job_defaults_config.get("max_strikes", self.max_strikes)
-        max_concurrent_searches = job_defaults_config.get("max_concurrent_searches")
-        if isinstance(max_concurrent_searches, int) and max_concurrent_searches > 0:
-            self.max_concurrent_searches = max_concurrent_searches
-        else:
-            logger.warning(
-                f"Job default 'max_concurrent_searches' must be an integer greater 0. Found: {str(max_concurrent_searches)}. Using default: {self.max_concurrent_searches}"
-            )
+        self.max_concurrent_searches = job_defaults_config.get("max_concurrent_searches")
         self.min_days_between_searches = job_defaults_config.get(
             "min_days_between_searches",
             self.min_days_between_searches,
