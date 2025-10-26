@@ -60,7 +60,7 @@ class JobDefaults:
         job_defaults_config = config.get("job_defaults", {})
         self.target_tags.append(settings.general.obsolete_tag)
         self.max_strikes = job_defaults_config.get("max_strikes", self.max_strikes)
-        self.max_concurrent_searches = job_defaults_config.get("max_concurrent_searches")
+        self.max_concurrent_searches = job_defaults_config.get("max_concurrent_searches", self.max_concurrent_searches)
         self.min_days_between_searches = job_defaults_config.get(
             "min_days_between_searches",
             self.min_days_between_searches,
