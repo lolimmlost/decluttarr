@@ -504,9 +504,8 @@ This is the interesting section. It defines which job you want decluttarr to run
 #### REMOVE_DONE_SEEDING
 
 -   Removes downloads that are completed and are done with seeding from the download client's queue when they meet your selection criteria (tags and/or categories).
--   "Done Seeding" means the seeding goals configured in your download client are met: 
-      - Either the ratio limit is reached
-      - Or the seeding time limit (per-torrent overrides or the global limits).
+-   "Done Seeding" means that the Ratio limit or Seeding Time limit for your download has been reached
+-   The limits are taken from your global settings in your download client, or the download-specific overrides
 -   Type: Boolean or Dict
 -   Permissible Values:
     -   If Bool: True, False
@@ -515,16 +514,16 @@ This is the interesting section. It defines which job you want decluttarr to run
         -   `target_categories`: List of category names to match
 -   Matching logic:
     -   Requires at least one of `target_tags` or `target_categories`. If neither is provided, the configured obsolete tag will be used as target_tag
-    -   A torrent must be completed AND match (category IN `target_categories`) OR (has any tag IN `target_tags`).
-    -   If both tags and categories are provided, the condition is OR between them.
+    -   A torrent must be completed AND match (category IN `target_categories`) OR (has any tag IN `target_tags`)
+    -   If both tags and categories are provided, the condition is OR between them
 -   Is Mandatory: No (Defaults to False)
 -   Notes:
-    -   This job currently only supports qBittorrent.
-    -   Works great together with `obsolete_tag`: have other jobs tag torrents (e.g., "Obsolete") and let this job remove them once completed.
+    -   This job currently only supports qBittorrent
+    -   Works great together with `obsolete_tag`: have other jobs tag torrents (e.g., "Obsolete") and let this job remove them once completed
     -   Why not set "Remove torrent and its files" upon reaching seeding goals in download client?
-        -   This setting is discouraged by *arrs and you will get warnings about it.
-        -   You get more granular control.
-        -   You can use this job to clean up after other apps like autobrr that do not have any torrent management features.
+        -   This setting is discouraged by *arrs and you will get warnings about it
+        -   You get more granular control
+        -   You can use this job to clean up after other apps like autobrr that do not have any torrent management features
 
 #### REMOVE_FAILED_DOWNLOADS
 
