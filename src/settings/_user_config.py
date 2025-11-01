@@ -28,6 +28,7 @@ CONFIG_MAPPING = {
     ],
     "jobs": [
         "REMOVE_BAD_FILES",
+        "REMOVE_DONE_SEEDING",
         "REMOVE_FAILED_DOWNLOADS",
         "REMOVE_FAILED_IMPORTS",
         "REMOVE_METADATA_MISSING",
@@ -73,6 +74,7 @@ def _load_from_env() -> dict:
 
     Returns:
         dict: Config sections with parsed env var values.
+
     """
     config = {}
 

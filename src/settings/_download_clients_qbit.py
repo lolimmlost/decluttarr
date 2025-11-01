@@ -61,7 +61,7 @@ class QbitClient:
         self.name = name
         if not self.name:
             logger.verbose(
-                "No name provided for qbittorrent client, assuming 'qBitorrent'. If the name used in your *arr is different, please correct either the name in your *arr, or set the name in your config"
+                "No name provided for qbittorrent client, assuming 'qBitorrent'. If the name used in your *arr is different, please correct either the name in your *arr, or set the name in your config",
             )
             self.name = "qBittorrent"
 
@@ -82,7 +82,7 @@ class QbitClient:
 
         try:
             logger.debug(
-                "_download_clients_qBit.py/refresh_cookie: Refreshing qBit cookie"
+                "_download_clients_qBit.py/refresh_cookie: Refreshing qBit cookie",
             )
             endpoint = f"{self.api_url}/auth/login"
             data = {
@@ -113,11 +113,14 @@ class QbitClient:
         logger.debug("_download_clients_qBit.py/fetch_version: Getting qBit Version")
         endpoint = f"{self.api_url}/app/version"
         response = await make_request(
-            "get", endpoint, self.settings, cookies=self.cookie
+            "get",
+            endpoint,
+            self.settings,
+            cookies=self.cookie,
         )
         self.version = response.text[1:]  # Remove the '_v' prefix
         logger.debug(
-            f"_download_clients_qBit.py/fetch_version: qBit version={self.version}"
+            f"_download_clients_qBit.py/fetch_version: qBit version={self.version}",
         )
 
     async def validate_version(self):
@@ -138,7 +141,7 @@ class QbitClient:
     async def create_tag(self, tag: str):
         """Ensure a tag exists in qBittorrent; create it if it doesn't."""
         logger.debug(
-            "_download_clients_qBit.py/create_tag: Checking if tag '{tag}' exists (and creating it if not)"
+            "_download_clients_qBit.py/create_tag: Checking if tag '{tag}' exists (and creating it if not)",
         )
         url = f"{self.api_url}/torrents/tags"
         response = await make_request("get", url, self.settings, cookies=self.cookie)
@@ -169,7 +172,7 @@ class QbitClient:
         """Set the 'unwanted folder' setting in qBittorrent if needed."""
         if self.settings.jobs.remove_bad_files:
             logger.debug(
-                "_download_clients_qBit.py/set_unwanted_folder: Checking preferences and setting use_unwanted_folder if not already set"
+                "_download_clients_qBit.py/set_unwanted_folder: Checking preferences and setting use_unwanted_folder if not already set",
             )
             endpoint = f"{self.api_url}/app/preferences"
             response = await make_request(
@@ -197,7 +200,7 @@ class QbitClient:
         """Check if the qBittorrent URL is reachable."""
         try:
             logger.debug(
-                "_download_clients_qBit.py/check_qbit_reachability: Checking if qbit is reachable"
+                "_download_clients_qBit.py/check_qbit_reachability: Checking if qbit is reachable",
             )
             endpoint = f"{self.api_url}/auth/login"
             data = {
@@ -223,7 +226,7 @@ class QbitClient:
     async def check_connected(self):
         """Check if the qBittorrent is connected to internet."""
         logger.debug(
-            "_download_clients_qBit.py/check_qbit_reachability: Checking if qbit is connected to the internet"
+            "_download_clients_qBit.py/check_qbit_reachability: Checking if qbit is connected to the internet",
         )
         qbit_connection_status = (
             (
@@ -268,7 +271,7 @@ class QbitClient:
 
         # Fetch all torrents
         logger.debug(
-            "_download_clients_qBit/get_protected_and_private: Checking if torrents have protected tag"
+            "_download_clients_qBit/get_protected_and_private: Checking if torrents have protected tag",
         )
         qbit_items = await self.get_qbit_items()
 
@@ -287,7 +290,7 @@ class QbitClient:
                         private_downloads.append(qbit_item["hash"].upper())
                 else:
                     logger.debug(
-                        "_download_clients_qBit/get_protected_and_private: Checking if torrents are private (only done for old qbit versions)"
+                        "_download_clients_qBit/get_protected_and_private: Checking if torrents are private (only done for old qbit versions)",
                     )
                     qbit_item_props = await make_request(
                         "get",
@@ -325,7 +328,7 @@ class QbitClient:
         tags_str = ",".join(tags)
 
         logger.debug(
-            "_download_clients_qBit/set_tag: Setting tag(s) {tags_str} to {hashes_str}"
+            "_download_clients_qBit/set_tag: Setting tag(s) {tags_str} to {hashes_str}",
         )
 
         # Prepare the data for the request
@@ -374,7 +377,7 @@ class QbitClient:
 
     async def set_torrent_file_priority(self, download_id, file_id, priority=0):
         logger.debug(
-            "_download_clients_qBit/set_torrent_file_priority: Setting download priority for torrent file"
+            "_download_clients_qBit/set_torrent_file_priority: Setting download priority for torrent file",
         )
         data = {
             "hash": download_id.lower(),
@@ -416,5 +419,22 @@ class QbitClient:
                     "💡 Tip: No global download speed limit is set in your qBittorrent instance. "
                     "If you configure one, the 'remove_slow' check will automatically disable itself "
                     "when your bandwidth is fully utilized. This prevents slow downloads from being mistakenly removed — "
-                    "not because they lack seeds, but because your own download capacity is saturated."
+                    "not because they lack seeds, but because your own download capacity is saturated.",
                 )
+
+    async def remove_download(self, download_hash: str, delete_files: bool = True):
+        """Remove a torrent from qBittorrent."""
+        logger.debug(
+            f"_download_clients_qBit/remove_download: Removing torrent {download_hash}",
+        )
+        data = {
+            "hashes": download_hash.lower(),
+            "deleteFiles": "true" if delete_files else "false",
+        }
+        await make_request(
+            "post",
+            f"{self.api_url}/torrents/delete",
+            self.settings,
+            data=data,
+            cookies=self.cookie,
+        )

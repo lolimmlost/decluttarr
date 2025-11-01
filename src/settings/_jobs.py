@@ -13,6 +13,7 @@ class JobParams:
     min_speed: int
     max_concurrent_searches: int
     min_days_between_searches: int
+    target_tags: list
 
     def __init__(
         self,
@@ -23,6 +24,7 @@ class JobParams:
         min_speed=None,
         max_concurrent_searches=None,
         min_days_between_searches=None,
+        target_tags=None,
     ):
         self.enabled = enabled
         self.keep_archives = keep_archives
@@ -31,6 +33,7 @@ class JobParams:
         self.min_speed = min_speed
         self.max_concurrent_searches = max_concurrent_searches
         self.min_days_between_searches = min_days_between_searches
+        self.target_tags = target_tags
 
         # Remove attributes that are None to keep the object clean
         self._remove_none_attributes()
@@ -51,9 +54,11 @@ class JobDefaults:
     min_days_between_searches: int = 7
     min_speed: int = 100
     message_patterns = ["*"]
+    target_tags = []
 
-    def __init__(self, config):
+    def __init__(self, config, settings):
         job_defaults_config = config.get("job_defaults", {})
+        self.target_tags.append(settings.general.obsolete_tag)
         self.max_strikes = job_defaults_config.get("max_strikes", self.max_strikes)
         self.max_concurrent_searches = job_defaults_config.get("max_concurrent_searches", self.max_concurrent_searches)
         self.min_days_between_searches = job_defaults_config.get(
@@ -66,14 +71,15 @@ class JobDefaults:
 class Jobs:
     """Represent all jobs explicitly."""
 
-    def __init__(self, config):
-        self.job_defaults = JobDefaults(config)
+    def __init__(self, config, settings):
+        self.job_defaults = JobDefaults(config, settings)
         self._set_job_defaults()
         self._set_job_configs(config)
         del self.job_defaults
 
     def _set_job_defaults(self):
         self.remove_bad_files = JobParams(keep_archives=self.job_defaults.keep_archives)
+        self.remove_done_seeding = JobParams(target_tags=self.job_defaults.target_tags)
         self.remove_failed_downloads = JobParams()
         self.remove_failed_imports = JobParams(
             message_patterns=self.job_defaults.message_patterns,

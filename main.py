@@ -67,9 +67,11 @@ async def main():
             await job_manager.run_jobs(arr)
             logger.verbose("")
 
+        # Run download client jobs (these run independently of *arr instances)
+        await job_manager.run_download_client_jobs()
+
         # Wait for the next run
         await wait_next_run()
-    return
 
 
 if __name__ == "__main__":

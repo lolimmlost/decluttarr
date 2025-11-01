@@ -17,6 +17,11 @@ job_defaults:
 jobs:
   remove_bad_files:
     # keep_archives: true
+  remove_done_seeding:
+    # target_tags:
+    #   - "Obsolete"
+    # target_categories:
+    #  - "autobrr"
   remove_failed_downloads:
   remove_failed_imports:
     message_patterns:

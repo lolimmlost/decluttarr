@@ -38,6 +38,7 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
     - [REMOVE_SLOW](#remove_slow)
     - [REMOVE_STALLED](#remove_stalled)
     - [REMOVE_UNMONITORED](#remove_unmonitored)
+    - [REMOVE_DONE_SEEDING](#remove_done_seeding)
     - [SEARCH_CUTOFF_UNMET](#search_unmet_cutoff)
     - [SEARCH_MISSING](#search_missing)
     - [DETECT_DELETIONS](#detect_deletions)
@@ -49,8 +50,6 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
     - [WHISPARR](#whisparr)
   - [Downloaders](#download-clients)
     - [QBITTORRENT](#qbittorrent)
-    - [SABNZBD](#sabnzbd)
-- [Disclaimer](#disclaimer)
 
 ## Overview
 
@@ -69,6 +68,7 @@ Feature overview:
 -   Removing downloads that are repeatedly have been found to be slow (remove_slow)
 -   Removing downloads that are stalled (remove_stalled)
 -   Removing downloads belonging to movies/series/albums etc. that have been marked as "unmonitored" (remove_unmonitored)
+-   Removing completed downloads from your download client that match certain criteria (remove_done_seeding)
 -   Periodically searching for better content on movies/series/albums etc. where cutoff has not been reached yet (search_cutoff_unmet)
 -   Periodically searching for missing content that has not yet been found (search_missing)
 
@@ -227,6 +227,11 @@ services:
       # As written above, these can also be set as Job Defaults so you don't have to specify them as granular as below.
       # REMOVE_BAD_FILES: |
       #   keep_archives: True
+      # REMOVE_DONE_SEEDING: |
+      #   target_tags:
+      #     - "Obsolete"
+      #   target_categories:
+      #     - "autobrr"      
       # REMOVE_FAILED_DOWNLOADS: True
       # REMOVE_FAILED_IMPORTS: |
       #   message_patterns:
@@ -326,9 +331,9 @@ Decluttarr v2 is a major update with a cleaner config format and powerful new fe
 - 🧼 **Bad files handling**: Added ability to not download potentially malicious files and files such as trailers / samples
 - 🐌 **Adaptive slowness**: Slow downloads-removal can be dynamically turned on/off depending on overall bandwidth usage
 - 📄 **Log files**: Logs can now be retrieved from a log file
-- 📌 **Removal behavior**: Rather than removing downloads, they can now also be tagged for later removal (ie. to allow for seed targets to be reached first). This can be done separately for private and public trackers
+- 🗑️ **Removal behavior**: Rather than removing downloads, they can now also be tagged for later removal (ie. to allow for seed targets to be reached first). This can be done separately for private and public trackers
 - 📌 **Deletion detection**: If movies or tv shows get deleted (for instance via Plex), decluttarr can notice that and refresh the respective item
-
+- ⛓️ **Being a good seeder**: A new job allows you to wait with the removal until your seed goals have been achieved
 ---
 
 ### ⚠️ Breaking Changes
@@ -407,7 +412,7 @@ Configures the general behavior of the application (across all features)
 -   Allows you to configure download client names that will be skipped by decluttarr
     Note: The names provided here have to 100% match with how you have named your download clients in your *arr application(s)
 -   Type: List of strings
--   Is Mandatory: No (Defaults to [], i.e. nothing ignored])
+-   Is Mandatory: No (Defaults to [], i.e. nothing ignored)
 
 #### PRIVATE_TRACKER_HANDLING / PUBLIC_TRACKER_HANDLING
 
@@ -496,6 +501,30 @@ This is the interesting section. It defines which job you want decluttarr to run
       - This may be helpful if you use a tool such as [unpackerr](https://github.com/Unpackerr/unpackerr) that can handle it
       - However, you may also find that these packages may contain bad/malicious files (which will not removed by decluttarr)
 
+#### REMOVE_DONE_SEEDING
+
+-   Removes downloads that are completed and are done with seeding from the download client's queue when they meet your selection criteria (tags and/or categories).
+-   "Done Seeding" means that the Ratio limit or Seeding Time limit for your download has been reached
+-   The limits are taken from your global settings in your download client, or the download-specific overrides
+-   Type: Boolean or Dict
+-   Permissible Values:
+    -   If Bool: True, False
+    -   If Dict:
+        -   `target_tags`: List of tag names to match
+        -   `target_categories`: List of category names to match
+-   Matching logic:
+    -   Requires at least one of `target_tags` or `target_categories`. If neither is provided, the configured obsolete tag will be used as target_tag
+    -   A torrent must be completed AND match (category IN `target_categories`) OR (has any tag IN `target_tags`)
+    -   If both tags and categories are provided, the condition is OR between them
+-   Is Mandatory: No (Defaults to False)
+-   Notes:
+    -   This job currently only supports qBittorrent
+    -   Works great together with `obsolete_tag`: have other jobs tag torrents (e.g., "Obsolete") and let this job remove them once completed
+    -   Why not set "Remove torrent and its files" upon reaching seeding goals in download client?
+        -   This setting is discouraged by *arrs and you will get warnings about it
+        -   You get more granular control
+        -   You can use this job to clean up after other apps like autobrr that do not have any torrent management features
+
 #### REMOVE_FAILED_DOWNLOADS
 
 -   Steers whether downloads that are marked as "failed" are removed from the queue
@@ -583,6 +612,7 @@ This is the interesting section. It defines which job you want decluttarr to run
 -   Type: Boolean
 -   Permissible Values: True, False
 -   Is Mandatory: No (Defaults to False)
+
 
 #### SEARCH_UNMET_CUTOFF
 
