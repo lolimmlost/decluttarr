@@ -292,13 +292,8 @@ class QbitClient:
                     logger.debug(
                         "_download_clients_qBit/get_protected_and_private: Checking if torrents are private (only done for old qbit versions)",
                     )
-                    qbit_item_props = await make_request(
-                        "get",
-                        self.api_url + "/torrents/properties",
-                        self.settings,
-                        params={"hash": qbit_item["hash"]},
-                        cookies=self.cookie,
-                    )
+                    qbit_item_props = await self.get_torrent_properties(qbit_item["hash"])
+
                     if not qbit_item_props:
                         logger.error(
                             "Torrent %s not found on qBittorrent - potentially removed while checking if private. "
@@ -362,6 +357,18 @@ class QbitClient:
             cookies=self.cookie,
         )
         return response.json()
+
+    async def get_torrent_properties(self, qbit_hash):
+        params = {"hash": qbit_hash.lower()}
+        response = await make_request(
+                        "get",
+                        self.api_url + "/torrents/properties",
+                        self.settings,
+                        params=params,
+                        cookies=self.cookie,
+                    )
+        return response.json()
+
 
     async def get_torrent_files(self, download_id):
         # this may not work if the wrong qbit
