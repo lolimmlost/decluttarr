@@ -342,21 +342,36 @@ class QbitClient:
         items = await self.get_qbit_items(download_id)
         return items[0]["completed"]
 
-    async def get_qbit_items(self, hashes=None):
-        params = None
-        if hashes:
-            if isinstance(hashes, str):
-                hashes = [hashes]
-            params = {"hashes": "|".join(hashes).lower()}  # Join and make lowercase
+    async def get_qbit_items(self, hashes: list[str] | str | None = None) -> list[dict]:
+        """
+        Fetch all torrents from qBittorrent and optionally filter by given hashes.
+        Note: Filtration now on decluttarr side, as passing of hashes into qbit call may cause error (too long request URI)
 
+        Args:
+            hashes: Optional single hash (str) or list of hashes to filter results.
+
+        Returns:
+            List of torrent dicts, filtered if hashes provided.
+        """
         response = await make_request(
             method="get",
-            endpoint=self.api_url + "/torrents/info",
+            endpoint=f"{self.api_url}/torrents/info",
             settings=self.settings,
-            params=params,
+            params=None,  # Retrieve all torrents
             cookies=self.cookie,
         )
-        return response.json()
+
+        all_items = response.json()
+
+        if not hashes:
+            return all_items
+
+        # Ensure hashes is a list and create a set for O(1) lookup
+        if isinstance(hashes, str):
+            hashes = [hashes]
+        hashes_set = {h.lower() for h in hashes}
+
+        return [item for item in all_items if item["hash"].lower() in hashes_set]
 
     async def get_torrent_properties(self, qbit_hash):
         params = {"hash": qbit_hash.lower()}
