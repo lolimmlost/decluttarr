@@ -14,6 +14,7 @@ from src.settings._user_config import _load_from_env
 # Single values as plain strings (not YAML block strings)
 LOG_LEVEL_VALUE = "VERBOSE"
 TIMER_VALUE = "10"
+REQUEST_TIMEOUT_VALUE = "35"
 SSL_VERIFICATION_VALUE = "true"
 
 # List
@@ -79,6 +80,7 @@ def fixture_env_vars():
     env = {
         "LOG_LEVEL": LOG_LEVEL_VALUE,
         "TIMER": TIMER_VALUE,
+        "REQUEST_TIMEOUT": REQUEST_TIMEOUT_VALUE,
         "SSL_VERIFICATION": SSL_VERIFICATION_VALUE,
         "IGNORED_DOWNLOAD_CLIENTS": ignored_download_clients_yaml,
         "REMOVE_BAD_FILES": remove_bad_files_yaml,
@@ -107,6 +109,7 @@ qbit_expected = yaml.safe_load(qbit_yaml)
     [
         ("general", "log_level", LOG_LEVEL_VALUE),
         ("general", "timer", int(TIMER_VALUE)),
+        ("general", "request_timeout", int(REQUEST_TIMEOUT_VALUE)),
         ("general", "ssl_verification", True),
         (
             "general",

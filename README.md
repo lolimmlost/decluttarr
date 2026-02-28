@@ -20,6 +20,7 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
     - [LOG_LEVEL](#log_level)
     - [TEST_RUN](#test_run)
     - [TIMER](#timer)
+    - [REQUEST_TIMEOUT](#request_timeout)
     - [SSL_VERIFICATION](#ssl_verification)
     - [IGNORE_DOWNLOAD_CLIENTS](#ignore_download_clients)
     - [PRIVATE_TRACKER_HANDLING / PUBLIC_TRACKER_HANDLING](#private_tracker_handling--public_tracker_handling)
@@ -193,6 +194,7 @@ services:
       LOG_LEVEL: INFO
       TEST_RUN: True
       TIMER: 10
+      # REQUEST_TIMEOUT: 15
       # IGNORED_DOWNLOAD_CLIENTS: >
       #   - emulerr
       # SSL_VERIFICATION: true
@@ -398,6 +400,13 @@ Configures the general behavior of the application (across all features)
 -   Type: Integer
 -   Unit: Minutes
 -   Is Mandatory: No (Defaults to 10)
+
+#### REQUEST_TIMEOUT
+
+-   Timeout used for HTTP/API requests to *arr and download clients
+-   Type: Integer or Float
+-   Unit: Seconds
+-   Is Mandatory: No (Defaults to 15)
 
 #### SSL_VERIFICATION
 

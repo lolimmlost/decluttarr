@@ -52,7 +52,7 @@ async def wait_next_run():
 async def main():
     await launch_steps(settings)
 
-    if settings.jobs.detect_deletions:
+    if settings.jobs.detect_deletions.enabled:
         await WatcherManager(settings).setup()
     # Start Cleaning
     while True:
@@ -60,7 +60,13 @@ async def main():
 
         # Refresh qBit Cookies (SABnzbd doesn't need cookie refresh)
         for qbit in settings.download_clients.qbittorrent:
-            await qbit.refresh_cookie()
+            try:
+                await qbit.refresh_cookie()
+            except Exception as err:  # noqa: BLE001
+                logger.error(
+                    f"Error while refreshing cookie for {qbit.name} ({qbit.base_url}): {err}",
+                    exc_info=True,
+                )
 
         # Run script for each instance
         for arr in settings.instances:
@@ -68,7 +74,13 @@ async def main():
             logger.verbose("")
 
         # Run download client jobs (these run independently of *arr instances)
-        await job_manager.run_download_client_jobs()
+        try:
+            await job_manager.run_download_client_jobs()
+        except Exception as err:  # noqa: BLE001
+            logger.error(
+                f"Error while running download-client jobs: {err}",
+                exc_info=True,
+            )
 
         # Wait for the next run
         await wait_next_run()

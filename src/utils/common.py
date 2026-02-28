@@ -42,7 +42,7 @@ async def make_request(
     method: str,
     endpoint: str,
     settings,
-    timeout: int = 15,
+    timeout: float | None = None,
     *,
     log_error=True,
     **kwargs,
@@ -51,6 +51,9 @@ async def make_request(
     A utility function to make HTTP requests (GET, POST, DELETE, PUT).
     """
     ignore_test_run = kwargs.pop("ignore_test_run", False)
+    request_timeout = timeout
+    if request_timeout is None:
+        request_timeout = getattr(getattr(settings, "general", None), "request_timeout", 15)
 
     if settings.general.test_run and not ignore_test_run:
         if method.lower() in ("put", "post", "delete"):
@@ -74,7 +77,7 @@ async def make_request(
             endpoint,
             **kwargs,
             verify=settings.general.ssl_verification,
-            timeout=timeout,
+            timeout=request_timeout,
         )
         response.raise_for_status()
         return response

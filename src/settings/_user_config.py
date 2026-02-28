@@ -13,6 +13,7 @@ CONFIG_MAPPING = {
         "LOG_LEVEL",
         "TEST_RUN",
         "TIMER",
+        "REQUEST_TIMEOUT",
         "SSL_VERIFICATION",
         "IGNORED_DOWNLOAD_CLIENTS",
         "PRIVATE_TRACKER_HANDLING",
