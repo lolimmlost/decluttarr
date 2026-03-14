@@ -42,6 +42,7 @@ CONFIG_MAPPING = {
     ],
     "instances": ["SONARR", "RADARR", "READARR", "LIDARR", "WHISPARR"],
     "download_clients": ["QBITTORRENT"],
+    "web": ["WEB_ENABLED", "WEB_HOST", "WEB_PORT"],
 }
 
 

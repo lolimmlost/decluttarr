@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Activity Log - Decluttarr{% endblock %}
+{% block content %}
+<div x-data="activityLog()" x-init="loadActivity()">
+    <h2>Activity Log</h2>
+
+    <!-- Filters -->
+    <details open>
+        <summary>Filters</summary>
+        <div class="grid">
+            <label>
+                Search
+                <input type="text" x-model="filters.search" @input.debounce.300ms="loadActivity()" placeholder="Search titles...">
+            </label>
+            <label>
+                Action
+                <select x-model="filters.action" @change="loadActivity()">
+                    <option value="">All</option>
+                    <option value="removed">Removed</option>
+                    <option value="flagged">Flagged</option>
+                    <option value="recovered">Recovered</option>
+                    <option value="protected">Protected</option>
+                    <option value="strike">Strike</option>
+                </select>
+            </label>
+            <label>
+                Arr Instance
+                <select x-model="filters.arr" @change="loadActivity()">
+                    <option value="">All</option>
+                    {% for inst in settings.instances %}
+                    <option value="{{ inst.name }}">{{ inst.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+        <div class="grid">
+            <label>
+                From
+                <input type="date" x-model="filters.date_from" @change="loadActivity()">
+            </label>
+            <label>
+                To
+                <input type="date" x-model="filters.date_to" @change="loadActivity()">
+            </label>
+        </div>
+    </details>
+
+    <!-- Results -->
+    <div x-show="loading" aria-busy="true">Loading...</div>
+
+    <figure x-show="!loading">
+        <table role="grid">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Instance</th>
+                    <th>Job</th>
+                    <th>Action</th>
+                    <th>Title</th>
+                    <th>Strikes</th>
+                    <th>Test</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template x-for="item in items" :key="item.id">
+                    <tr :class="{'action-removed': item.action === 'removed', 'action-recovered': item.action === 'recovered'}">
+                        <td x-text="formatTime(item.timestamp)" style="white-space: nowrap;"></td>
+                        <td>
+                            <span class="badge" :data-arr-type="item.arr_type" x-text="item.arr_name"></span>
+                        </td>
+                        <td><code x-text="item.job_name"></code></td>
+                        <td>
+                            <span class="badge" :class="'action-badge-' + item.action" x-text="item.action"></span>
+                        </td>
+                        <td x-text="item.title" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></td>
+                        <td>
+                            <span x-show="item.strikes !== null" x-text="item.strikes + '/' + (item.max_strikes || '?')"></span>
+                        </td>
+                        <td>
+                            <span x-show="item.test_run" class="badge test-badge">TEST</span>
+                        </td>
+                    </tr>
+                </template>
+                <tr x-show="items.length === 0">
+                    <td colspan="7" style="text-align: center;">No activity found</td>
+                </tr>
+            </tbody>
+        </table>
+    </figure>
+
+    <!-- Pagination -->
+    <div style="display: flex; justify-content: space-between; align-items: center;" x-show="totalPages > 1">
+        <button class="outline" @click="prevPage()" :disabled="page <= 1">Previous</button>
+        <span>Page <span x-text="page"></span> of <span x-text="totalPages"></span> (<span x-text="total"></span> total)</span>
+        <button class="outline" @click="nextPage()" :disabled="page >= totalPages">Next</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function activityLog() {
+    return {
+        items: [],
+        loading: true,
+        page: 1,
+        totalPages: 1,
+        total: 0,
+        filters: {
+            search: '',
+            action: '',
+            arr: '',
+            date_from: '',
+            date_to: '',
+        },
+        async loadActivity() {
+            this.loading = true;
+            const params = new URLSearchParams({ page: this.page, per_page: 50 });
+            if (this.filters.search) params.set('search', this.filters.search);
+            if (this.filters.action) params.set('action', this.filters.action);
+            if (this.filters.arr) params.set('arr', this.filters.arr);
+            if (this.filters.date_from) params.set('date_from', this.filters.date_from);
+            if (this.filters.date_to) params.set('date_to', this.filters.date_to);
+
+            try {
+                const res = await fetch(`/api/activity?${params}`);
+                const data = await res.json();
+                this.items = data.items;
+                this.total = data.total;
+                this.totalPages = data.total_pages;
+            } catch {
+                this.items = [];
+            }
+            this.loading = false;
+        },
+        formatTime(ts) {
+            if (!ts) return '';
+            const d = new Date(ts + 'Z');
+            return d.toLocaleString();
+        },
+        prevPage() {
+            if (this.page > 1) { this.page--; this.loadActivity(); }
+        },
+        nextPage() {
+            if (this.page < this.totalPages) { this.page++; this.loadActivity(); }
+        },
+    };
+}
+</script>
+{% endblock %}

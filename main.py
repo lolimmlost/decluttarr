@@ -9,9 +9,16 @@ from src.job_manager import JobManager
 from src.settings.settings import Settings
 from src.utils.log_setup import logger
 from src.utils.startup import launch_steps
+from src.web.events import EventBus, NoOpEventBus, Event, EventType
 
 settings = Settings()
-job_manager = JobManager(settings)
+
+# Event bus for web UI integration
+web_enabled = getattr(settings.general, "web_enabled", True)
+event_bus = EventBus() if web_enabled else NoOpEventBus()
+trigger_event = asyncio.Event() if web_enabled else None
+
+job_manager = JobManager(settings, event_bus=event_bus)
 watch_manager = WatcherManager(settings)
 
 
@@ -44,8 +51,19 @@ async def wait_next_run():
 
     logger.verbose(f"*** Done - Next run at {formatted_next_run} ****")
 
-    # Wait for the next run
-    await asyncio.sleep(settings.general.timer * 60)
+    # Wait for the next run, but allow manual trigger to interrupt
+    if trigger_event:
+        try:
+            await asyncio.wait_for(
+                trigger_event.wait(),
+                timeout=settings.general.timer * 60,
+            )
+            trigger_event.clear()
+            logger.info("Manual trigger received, starting cycle early")
+        except asyncio.TimeoutError:
+            pass
+    else:
+        await asyncio.sleep(settings.general.timer * 60)
 
 
 # Main function
@@ -57,6 +75,10 @@ async def main():
     # Start Cleaning
     while True:
         logger.info("-" * 50)
+
+        await event_bus.emit(Event(EventType.CYCLE_START, {
+            "instances": [arr.name for arr in settings.instances],
+        }))
 
         # Refresh qBit Cookies (SABnzbd doesn't need cookie refresh)
         for qbit in settings.download_clients.qbittorrent:
@@ -70,10 +92,27 @@ async def main():
         # Run download client jobs (these run independently of *arr instances)
         await job_manager.run_download_client_jobs()
 
+        await event_bus.emit(Event(EventType.CYCLE_END, {
+            "instances": [arr.name for arr in settings.instances],
+        }))
+
         # Wait for the next run
         await wait_next_run()
 
 
+async def start():
+    """Entry point that optionally runs web server alongside main loop."""
+    if web_enabled:
+        from src.web.app import start_web_server
+        web_task = asyncio.create_task(
+            start_web_server(settings, event_bus, trigger_event)
+        )
+        main_task = asyncio.create_task(main())
+        await asyncio.gather(main_task, web_task)
+    else:
+        await main()
+
+
 if __name__ == "__main__":
     signal.signal(signal.SIGTERM, terminate)
-    asyncio.run(main())
+    asyncio.run(start())

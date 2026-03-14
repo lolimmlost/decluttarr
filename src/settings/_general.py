@@ -17,6 +17,9 @@ class General:
     public_tracker_handling: str = "remove"
     obsolete_tag: str = "Obsolete"
     protected_tag: str = "Keep"
+    web_enabled: bool = True
+    web_host: str = "0.0.0.0"
+    web_port: int = 9999
 
     def __init__(self, config):
         general_config = config.get("general", {})
@@ -36,6 +39,12 @@ class General:
         self.public_tracker_handling = general_config.get(
             "public_tracker_handling", self.public_tracker_handling
         )
+
+        # Web UI settings
+        web_config = config.get("web", {})
+        self.web_enabled = web_config.get("enabled", general_config.get("web_enabled", self.web_enabled))
+        self.web_host = web_config.get("host", general_config.get("web_host", self.web_host))
+        self.web_port = web_config.get("port", general_config.get("web_port", self.web_port))
         self.obsolete_tag = general_config.get("obsolete_tag", self.obsolete_tag)
         self.protected_tag = general_config.get("protected_tag", self.protected_tag)
 

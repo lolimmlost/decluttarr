@@ -1,0 +1,74 @@
+import asyncio
+import os
+import time
+
+import uvicorn
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from src.web.config_manager import ConfigManager
+from src.web.database import ActivityRecorder, Database
+from src.web.events import EventBus
+from src.web.routes import api_router, page_router
+
+
+def create_app(settings, event_bus: EventBus, trigger_event: asyncio.Event = None) -> FastAPI:
+    app = FastAPI(title="Decluttarr", docs_url="/api/docs", redoc_url=None)
+
+    # Static files and templates
+    web_dir = os.path.dirname(__file__)
+    app.mount("/static", StaticFiles(directory=os.path.join(web_dir, "static")), name="static")
+
+    templates = Jinja2Templates(directory=os.path.join(web_dir, "templates"))
+
+    # Store shared state
+    app.state.settings = settings
+    app.state.event_bus = event_bus
+    app.state.templates = templates
+    app.state.start_time = time.time()
+    app.state.trigger_event = trigger_event
+
+    # Register routes
+    app.include_router(api_router)
+    app.include_router(page_router)
+
+    return app
+
+
+async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio.Event = None):
+    """Start the web server as an async task."""
+    from src.utils.log_setup import logger
+
+    # Initialize database
+    database = Database()
+    await database.init()
+
+    # Create app
+    app = create_app(settings, event_bus, trigger_event)
+    app.state.database = database
+
+    # Config manager
+    config_manager = ConfigManager(database, settings)
+    await config_manager.apply_all_overrides()
+    app.state.config_manager = config_manager
+
+    # Start activity recorder
+    recorder = ActivityRecorder(database, event_bus)
+    await recorder.start()
+    app.state.recorder = recorder
+
+    host = getattr(settings.general, "web_host", "0.0.0.0")
+    port = getattr(settings.general, "web_port", 9999)
+
+    logger.info(f"Web UI starting on http://{host}:{port}")
+
+    config = uvicorn.Config(
+        app,
+        host=host,
+        port=port,
+        log_level="warning",
+        access_log=False,
+    )
+    server = uvicorn.Server(config)
+    await server.serve()

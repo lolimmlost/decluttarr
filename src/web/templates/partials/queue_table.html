@@ -1,0 +1,85 @@
+{% if items %}
+<figure>
+    <table role="grid">
+        <thead>
+            <tr>
+                <th>Instance</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Client</th>
+                <th>Progress</th>
+                <th>Strikes</th>
+                <th>Protected</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr class="{% if item.strikes %}row-flagged{% endif %}{% if item.protected %} row-protected{% endif %}"
+                x-data="{ protecting: false }">
+                <td>
+                    <span class="badge" data-arr-type="{{ item.arr_type }}">{{ item.arr_name }}</span>
+                </td>
+                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                    title="{{ item.title }}">
+                    {{ item.title }}
+                </td>
+                <td>
+                    <span class="badge status-{{ item.status | lower }}">{{ item.status }}</span>
+                    {% for msg in item.status_messages %}
+                        <br><small style="color: var(--pico-secondary);">{{ msg }}</small>
+                    {% endfor %}
+                </td>
+                <td><small>{{ item.download_client }}</small></td>
+                <td>
+                    {% if item.size > 0 %}
+                        {% set pct = ((1 - item.sizeleft / item.size) * 100) | round(1) %}
+                        <progress value="{{ pct }}" max="100"></progress>
+                        <small>{{ pct }}%</small>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% for job_name, strike_info in item.strikes.items() %}
+                        <span class="badge strike-badge" title="{{ job_name }}">
+                            {{ strike_info.strikes }}
+                        </span>
+                    {% endfor %}
+                    {% if not item.strikes %}-{% endif %}
+                </td>
+                <td>
+                    {% if item.protected %}
+                        <span class="badge protected-badge">Protected</span>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not item.protected %}
+                    <button class="outline small-btn"
+                            :aria-busy="protecting"
+                            @click="protecting = true; fetch('/api/protected/' + {{ item.download_id | tojson }}, {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({title: {{ item.title | tojson }}, arr_name: {{ item.arr_name | tojson }}})
+                            }).then(() => { htmx.trigger('#queue-container', 'refresh'); protecting = false; })">
+                        Protect
+                    </button>
+                    {% else %}
+                    <button class="outline secondary small-btn"
+                            @click="fetch('/api/protected/' + {{ item.download_id | tojson }}, { method: 'DELETE' })
+                                    .then(() => htmx.trigger('#queue-container', 'refresh'))">
+                        Unprotect
+                    </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</figure>
+<p><small>{{ total }} items in queue</small></p>
+{% else %}
+<p>Queue is empty</p>
+{% endif %}

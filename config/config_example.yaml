@@ -65,6 +65,11 @@ instances:
     - base_url: "http://whisparr:6969"
       api_key: "xxxx"
 
+web:
+  enabled: true # Set to false to disable the web UI
+  # host: "0.0.0.0" # optional. Default: 0.0.0.0
+  # port: 9999 # optional. Default: 9999
+
 download_clients:
   qbittorrent:
     - base_url: "http://qbittorrent:8080" # You can use decluttarr without qbit (not all features available, see readme).

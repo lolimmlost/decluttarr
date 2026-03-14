@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Settings - Decluttarr{% endblock %}
+{% block content %}
+<div x-data="settingsPage()" x-init="init()">
+    <h2>Settings</h2>
+
+    <span x-show="message" x-text="message" x-transition
+          :style="messageError ? 'color: var(--pico-del-color)' : 'color: var(--pico-ins-color)'"
+          style="display: block; margin-bottom: 1rem;"></span>
+
+    <!-- General Settings -->
+    <article>
+        <header><h4>General</h4></header>
+
+        <div class="grid">
+            <label>
+                Test Run
+                <input type="checkbox" role="switch" x-model="config.general.test_run"
+                       @change="saveGeneral('test_run', config.general.test_run)">
+                <small x-show="isOverridden('general.test_run')" class="override-badge">overridden</small>
+            </label>
+            <label>
+                Timer (minutes)
+                <input type="number" x-model.number="config.general.timer" min="1" step="1"
+                       @change="saveGeneral('timer', config.general.timer)">
+                <small x-show="isOverridden('general.timer')" class="override-badge">overridden</small>
+            </label>
+        </div>
+
+        <div class="grid">
+            <label>
+                Log Level
+                <select x-model="config.general.log_level" @change="saveGeneral('log_level', config.general.log_level)">
+                    <option>DEBUG</option>
+                    <option>VERBOSE</option>
+                    <option>INFO</option>
+                    <option>WARNING</option>
+                    <option>ERROR</option>
+                </select>
+            </label>
+            <label>
+                SSL Verification
+                <input type="checkbox" role="switch" x-model="config.general.ssl_verification"
+                       @change="saveGeneral('ssl_verification', config.general.ssl_verification)">
+            </label>
+        </div>
+
+        <div class="grid">
+            <label>
+                Private Tracker Handling
+                <select x-model="config.general.private_tracker_handling"
+                        @change="saveGeneral('private_tracker_handling', config.general.private_tracker_handling)">
+                    <option value="remove">Remove</option>
+                    <option value="skip">Skip</option>
+                    <option value="obsolete_tag">Obsolete Tag</option>
+                </select>
+            </label>
+            <label>
+                Public Tracker Handling
+                <select x-model="config.general.public_tracker_handling"
+                        @change="saveGeneral('public_tracker_handling', config.general.public_tracker_handling)">
+                    <option value="remove">Remove</option>
+                    <option value="skip">Skip</option>
+                    <option value="obsolete_tag">Obsolete Tag</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="grid">
+            <label>
+                Obsolete Tag
+                <input type="text" x-model="config.general.obsolete_tag"
+                       @change="saveGeneral('obsolete_tag', config.general.obsolete_tag)">
+            </label>
+            <label>
+                Protected Tag
+                <input type="text" x-model="config.general.protected_tag"
+                       @change="saveGeneral('protected_tag', config.general.protected_tag)">
+            </label>
+        </div>
+    </article>
+
+    <!-- Jobs -->
+    <article>
+        <header><h4>Jobs</h4></header>
+
+        <template x-for="(jobConfig, jobName) in config.jobs" :key="jobName">
+            <details>
+                <summary>
+                    <span x-text="jobName"></span>
+                    <span x-show="jobConfig.enabled" style="color: var(--pico-ins-color); margin-left: 0.5rem;">enabled</span>
+                    <span x-show="!jobConfig.enabled" style="color: var(--pico-secondary); margin-left: 0.5rem;">disabled</span>
+                </summary>
+                <div style="padding: 0.5rem;">
+                    <div class="grid">
+                        <label>
+                            Enabled
+                            <input type="checkbox" role="switch" x-model="jobConfig.enabled"
+                                   @change="saveJob(jobName, 'enabled', jobConfig.enabled)">
+                        </label>
+                        <template x-if="'max_strikes' in jobConfig">
+                            <label>
+                                Max Strikes
+                                <input type="number" x-model.number="jobConfig.max_strikes" min="1"
+                                       @change="saveJob(jobName, 'max_strikes', jobConfig.max_strikes)">
+                            </label>
+                        </template>
+                        <template x-if="'min_speed' in jobConfig">
+                            <label>
+                                Min Speed (KB/s)
+                                <input type="number" x-model.number="jobConfig.min_speed" min="0"
+                                       @change="saveJob(jobName, 'min_speed', jobConfig.min_speed)">
+                            </label>
+                        </template>
+                    </div>
+                </div>
+            </details>
+        </template>
+    </article>
+
+    <!-- Instances (read-only) -->
+    <article>
+        <header><h4>Instances <small>(read-only, requires restart to change)</small></h4></header>
+        <template x-for="inst in config.instances" :key="inst.name">
+            <div class="grid" style="padding: 0.25rem 0;">
+                <span><strong x-text="inst.name"></strong></span>
+                <span x-text="inst.arr_type"></span>
+                <span><code x-text="inst.base_url"></code></span>
+            </div>
+        </template>
+    </article>
+
+    <!-- Reset -->
+    <button class="outline secondary" @click="resetOverrides()">Reset All to YAML Defaults</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function settingsPage() {
+    return {
+        config: {{ config | tojson }},
+        overrides: {{ overrides | tojson }},
+        message: '',
+        messageError: false,
+        init() {},
+        isOverridden(key) {
+            return key in this.overrides;
+        },
+        async saveGeneral(attr, value) {
+            await this.saveOverride(`general.${attr}`, value);
+        },
+        async saveJob(jobName, attr, value) {
+            await this.saveOverride(`jobs.${jobName}.${attr}`, value);
+        },
+        async saveOverride(key, value) {
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ updates: { [key]: value } }),
+                });
+                if (res.ok) {
+                    this.overrides[key] = value;
+                    this.showMessage('Saved');
+                } else {
+                    this.showMessage('Error saving', true);
+                }
+            } catch {
+                this.showMessage('Error saving', true);
+            }
+        },
+        async resetOverrides() {
+            if (!confirm('Reset all runtime overrides to YAML defaults? This will reload settings from config file.')) return;
+            try {
+                const res = await fetch('/api/config/reload', { method: 'POST' });
+                if (res.ok) {
+                    this.overrides = {};
+                    this.showMessage('Reset to defaults');
+                    // Reload the page to get fresh config
+                    setTimeout(() => location.reload(), 500);
+                }
+            } catch {
+                this.showMessage('Error resetting', true);
+            }
+        },
+        showMessage(msg, error = false) {
+            this.message = msg;
+            this.messageError = error;
+            setTimeout(() => this.message = '', 3000);
+        },
+    };
+}
+</script>
+{% endblock %}
