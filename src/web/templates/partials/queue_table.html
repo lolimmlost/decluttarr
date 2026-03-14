@@ -16,7 +16,7 @@
         <tbody>
             {% for item in items %}
             <tr class="{% if item.strikes %}row-flagged{% endif %}{% if item.protected %} row-protected{% endif %}"
-                x-data="{ protecting: false }">
+                x-data="queueRow({{ item | tojson }})">
                 <td>
                     <span class="badge" data-arr-type="{{ item.arr_type }}">{{ item.arr_name }}</span>
                 </td>
@@ -57,19 +57,11 @@
                 </td>
                 <td>
                     {% if not item.protected %}
-                    <button class="outline small-btn"
-                            :aria-busy="protecting"
-                            @click="protecting = true; fetch('/api/protected/' + {{ item.download_id | tojson }}, {
-                                method: 'POST',
-                                headers: {'Content-Type': 'application/json'},
-                                body: JSON.stringify({title: {{ item.title | tojson }}, arr_name: {{ item.arr_name | tojson }}})
-                            }).then(() => { htmx.trigger('#queue-container', 'refresh'); protecting = false; })">
+                    <button class="outline small-btn" :aria-busy="protecting" @click="protect()">
                         Protect
                     </button>
                     {% else %}
-                    <button class="outline secondary small-btn"
-                            @click="fetch('/api/protected/' + {{ item.download_id | tojson }}, { method: 'DELETE' })
-                                    .then(() => htmx.trigger('#queue-container', 'refresh'))">
+                    <button class="outline secondary small-btn" @click="unprotect()">
                         Unprotect
                     </button>
                     {% endif %}
@@ -80,6 +72,30 @@
     </table>
 </figure>
 <p><small>{{ total }} items in queue</small></p>
+
+<script>
+function queueRow(item) {
+    return {
+        protecting: false,
+        protect() {
+            this.protecting = true;
+            fetch('/api/protected/' + encodeURIComponent(item.download_id), {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({title: item.title, arr_name: item.arr_name})
+            }).then(() => {
+                htmx.trigger('#queue-container', 'refresh');
+                this.protecting = false;
+            });
+        },
+        unprotect() {
+            fetch('/api/protected/' + encodeURIComponent(item.download_id), {
+                method: 'DELETE'
+            }).then(() => htmx.trigger('#queue-container', 'refresh'));
+        }
+    }
+}
+</script>
 {% else %}
 <p>Queue is empty</p>
 {% endif %}
