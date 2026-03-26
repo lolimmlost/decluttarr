@@ -86,11 +86,17 @@ async def main():
 
         # Run script for each instance
         for arr in settings.instances:
-            await job_manager.run_jobs(arr)
+            try:
+                await job_manager.run_jobs(arr)
+            except Exception as e:
+                logger.error(f"Error running jobs on {arr.name}: {e}")
             logger.verbose("")
 
         # Run download client jobs (these run independently of *arr instances)
-        await job_manager.run_download_client_jobs()
+        try:
+            await job_manager.run_download_client_jobs()
+        except Exception as e:
+            logger.error(f"Error running download client jobs: {e}")
 
         await event_bus.emit(Event(EventType.CYCLE_END, {
             "instances": [arr.name for arr in settings.instances],
@@ -100,6 +106,16 @@ async def main():
         await wait_next_run()
 
 
+async def main_with_restart():
+    """Run main loop with automatic restart on unexpected failures."""
+    while True:
+        try:
+            await main()
+        except Exception as e:
+            logger.error(f"Main loop crashed: {e}. Restarting in 30 seconds...")
+            await asyncio.sleep(30)
+
+
 async def start():
     """Entry point that optionally runs web server alongside main loop."""
     if web_enabled:
@@ -107,7 +123,7 @@ async def start():
         web_task = asyncio.create_task(
             start_web_server(settings, event_bus, trigger_event)
         )
-        main_task = asyncio.create_task(main())
+        main_task = asyncio.create_task(main_with_restart())
         await asyncio.gather(main_task, web_task)
     else:
         await main()
