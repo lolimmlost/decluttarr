@@ -213,32 +213,41 @@ class QbitClient:
                     cookies=self.cookie,
                 )
 
-    async def check_qbit_reachability(self):
-        """Check if the qBittorrent URL is reachable."""
-        try:
-            logger.debug(
-                "_download_clients_qBit.py/check_qbit_reachability: Checking if qbit is reachable",
-            )
-            endpoint = f"{self.api_url}/auth/login"
-            data = {
-                "username": getattr(self, "username", ""),
-                "password": getattr(self, "password", ""),
-            }
-            headers = {"content-type": "application/x-www-form-urlencoded"}
-            await make_request(
-                "post",
-                endpoint,
-                self.settings,
-                data=data,
-                headers=headers,
-                log_error=False,
-                ignore_test_run=True,
-            )
+    async def check_qbit_reachability(self, max_retries=5, retry_delay=30):
+        """Check if the qBittorrent URL is reachable, with retries for transient failures."""
+        import asyncio
+        for attempt in range(1, max_retries + 1):
+            try:
+                logger.debug(
+                    "_download_clients_qBit.py/check_qbit_reachability: Checking if qbit is reachable",
+                )
+                endpoint = f"{self.api_url}/auth/login"
+                data = {
+                    "username": getattr(self, "username", ""),
+                    "password": getattr(self, "password", ""),
+                }
+                headers = {"content-type": "application/x-www-form-urlencoded"}
+                await make_request(
+                    "post",
+                    endpoint,
+                    self.settings,
+                    data=data,
+                    headers=headers,
+                    log_error=False,
+                    ignore_test_run=True,
+                )
+                return  # Success
 
-        except Exception as e:  # noqa: BLE001
-            tip = "💡 Tip: Did you specify the URL (and username/password if required) correctly?"
-            logger.error(f"-- | qBittorrent\n❗️ {e}\n{tip}\n")
-            wait_and_exit()
+            except Exception as e:  # noqa: BLE001
+                if attempt < max_retries:
+                    logger.warning(
+                        f"-- | qBittorrent ({self.base_url}) unreachable (attempt {attempt}/{max_retries}): {e}. Retrying in {retry_delay}s..."
+                    )
+                    await asyncio.sleep(retry_delay)
+                else:
+                    tip = "💡 Tip: Did you specify the URL (and username/password if required) correctly?"
+                    logger.error(f"-- | qBittorrent\n❗️ {e}\n{tip}\n")
+                    wait_and_exit()
 
     async def check_connected(self):
         """Check if the qBittorrent is connected to internet."""
@@ -275,6 +284,8 @@ class QbitClient:
         except QbitError as e:
             logger.error(f"qBittorrent version check failed: {e}")
             wait_and_exit()  # Exit if version check fails
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"qBittorrent version check timed out: {e}. Continuing anyway.")
 
         # Continue with other setup tasks regardless of version check result
         await self.create_required_tags()
