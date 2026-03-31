@@ -58,6 +58,27 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
     await recorder.start()
     app.state.recorder = recorder
 
+    # Schedule daily cleanup of old activity log entries
+    async def _periodic_cleanup():
+        while True:
+            await asyncio.sleep(86400)  # 24 hours
+            try:
+                deleted = await database.cleanup_old_activity(days=90)
+                if deleted:
+                    logger.info(f"Activity log cleanup: removed {deleted} entries older than 90 days")
+            except Exception as e:  # noqa: BLE001
+                logger.debug(f"Activity log cleanup error: {e}")
+
+    asyncio.create_task(_periodic_cleanup())
+
+    # Run initial cleanup on startup
+    try:
+        deleted = await database.cleanup_old_activity(days=90)
+        if deleted:
+            logger.info(f"Activity log cleanup: removed {deleted} entries older than 90 days")
+    except Exception as e:  # noqa: BLE001
+        logger.debug(f"Activity log cleanup error: {e}")
+
     host = getattr(settings.general, "web_host", "0.0.0.0")
     port = getattr(settings.general, "web_port", 9999)
 

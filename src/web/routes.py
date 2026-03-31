@@ -3,7 +3,7 @@ import json
 import time
 
 from fastapi import APIRouter, Query, Request
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 
 from src.utils.log_setup import logger
 from src.web.events import Event, EventType
@@ -11,17 +11,32 @@ from src.web.events import Event, EventType
 api_router = APIRouter(prefix="/api")
 page_router = APIRouter()
 
-# Allowed config keys that can be overridden at runtime
-ALLOWED_GENERAL_KEYS = {
-    "test_run", "timer", "log_level", "ssl_verification",
-    "private_tracker_handling", "public_tracker_handling",
-    "obsolete_tag", "protected_tag",
-}
-ALLOWED_JOB_ATTRS = {
-    "enabled", "max_strikes", "min_speed", "message_patterns",
-    "target_tags", "keep_archives", "max_concurrent_searches",
-    "min_days_between_searches",
-}
+
+def _cached_json(data: dict, max_age: int = 5) -> JSONResponse:
+    """Return a JSONResponse with Cache-Control headers."""
+    return JSONResponse(
+        content=data,
+        headers={"Cache-Control": f"private, max-age={max_age}"},
+    )
+
+# Derive allowed config keys from settings classes so they stay in sync automatically.
+# Keys that should NOT be overridable at runtime:
+_GENERAL_SKIP = {"web_enabled", "web_host", "web_port", "ignored_download_clients"}
+
+
+def _get_allowed_general_keys() -> set:
+    from src.settings._general import General
+    return {
+        k for k in General.__annotations__
+        if k not in _GENERAL_SKIP
+    }
+
+
+def _get_allowed_job_attrs() -> set:
+    import inspect
+    from src.settings._jobs import JobParams
+    sig = inspect.signature(JobParams.__init__)
+    return {p for p in sig.parameters if p != "self"}
 
 
 # ─── API: Status ───────────────────────────────────────────────
@@ -39,7 +54,7 @@ async def api_status(request: Request):
             "base_url": arr.base_url,
         })
 
-    return {
+    return _cached_json({
         "uptime": time.time() - app_state.start_time,
         "test_run": settings.general.test_run,
         "timer_minutes": settings.general.timer,
@@ -47,13 +62,13 @@ async def api_status(request: Request):
         "instances": instances,
         "version": getattr(settings.envs, "image_tag", "Local"),
         "web_enabled": True,
-    }
+    }, max_age=10)
 
 
 # ─── API: Queue ────────────────────────────────────────────────
 
-@api_router.get("/queue")
-async def api_queue(request: Request):
+async def _fetch_queue(request: Request) -> list:
+    """Fetch queue data from all instances. Returns list of queue items."""
     settings = request.app.state.settings
     db = request.app.state.database
 
@@ -105,14 +120,20 @@ async def api_queue(request: Request):
         except Exception as e:
             logger.warning(f"Failed to fetch queue for {arr.name}: {e}")
 
-    return {"items": all_queues, "total": len(all_queues)}
+    return all_queues
+
+
+@api_router.get("/queue")
+async def api_queue(request: Request):
+    all_queues = await _fetch_queue(request)
+    return _cached_json({"items": all_queues, "total": len(all_queues)}, max_age=5)
 
 
 @api_router.get("/queue/{arr_name}")
 async def api_queue_by_arr(arr_name: str, request: Request):
-    result = await api_queue(request)
-    filtered = [item for item in result["items"] if item["arr_name"] == arr_name]
-    return {"items": filtered, "total": len(filtered)}
+    all_queues = await _fetch_queue(request)
+    filtered = [item for item in all_queues if item["arr_name"] == arr_name]
+    return _cached_json({"items": filtered, "total": len(filtered)}, max_age=5)
 
 
 # ─── API: Activity ─────────────────────────────────────────────
@@ -279,9 +300,9 @@ def _validate_config_key(key: str) -> bool:
     """Validate that a config override key is allowed."""
     parts = key.split(".")
     if len(parts) == 2 and parts[0] == "general":  # noqa: PLR2004
-        return parts[1] in ALLOWED_GENERAL_KEYS
+        return parts[1] in _get_allowed_general_keys()
     if len(parts) == 3 and parts[0] == "jobs":  # noqa: PLR2004
-        return parts[2] in ALLOWED_JOB_ATTRS
+        return parts[2] in _get_allowed_job_attrs()
     return False
 
 
@@ -290,7 +311,7 @@ async def api_get_config(request: Request):
     config_manager = request.app.state.config_manager
     config = config_manager.get_current_config()
     overrides = await config_manager.get_overrides()
-    return {"config": config, "overrides": overrides}
+    return _cached_json({"config": config, "overrides": overrides}, max_age=5)
 
 
 @api_router.patch("/config")
@@ -435,11 +456,11 @@ async def page_settings(request: Request):
 @page_router.get("/partials/queue-table", response_class=HTMLResponse)
 async def partial_queue_table(request: Request):
     templates = request.app.state.templates
-    result = await api_queue(request)
+    items = await _fetch_queue(request)
     return templates.TemplateResponse("partials/queue_table.html", {
         "request": request,
-        "items": result["items"],
-        "total": result["total"],
+        "items": items,
+        "total": len(items),
     })
 
 

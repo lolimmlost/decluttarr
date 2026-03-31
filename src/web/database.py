@@ -66,6 +66,17 @@ class Database:
     def db(self):
         return self._db
 
+    async def cleanup_old_activity(self, days: int = 90):
+        """Delete activity_log entries older than the given number of days."""
+        if self._db:
+            cursor = await self._db.execute(
+                "DELETE FROM activity_log WHERE timestamp < datetime('now', ?)",
+                (f"-{days} days",),
+            )
+            await self._db.commit()
+            return cursor.rowcount
+        return 0
+
 
 class ActivityRecorder:
     """Subscribes to EventBus and records activity to SQLite."""

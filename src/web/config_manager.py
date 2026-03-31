@@ -62,22 +62,33 @@ class ConfigManager:
                     setattr(job, attr, value)
 
     def get_current_config(self) -> dict:
-        """Return current runtime config as a dict."""
+        """Return current runtime config as a dict.
+
+        General and job attributes are derived from settings classes so
+        this stays in sync automatically when new settings are added.
+        """
+        import inspect
+        from src.settings._general import General
+        from src.settings._jobs import JobParams
+
+        # Skip non-overridable keys
+        _skip = {"web_enabled", "web_host", "web_port", "ignored_download_clients"}
+
         general = {}
-        for attr in ("log_level", "test_run", "timer", "ssl_verification",
-                      "private_tracker_handling", "public_tracker_handling",
-                      "obsolete_tag", "protected_tag"):
-            if hasattr(self.settings.general, attr):
+        for attr in General.__annotations__:
+            if attr not in _skip and hasattr(self.settings.general, attr):
                 general[attr] = getattr(self.settings.general, attr)
+
+        # Job attributes from JobParams.__init__ signature
+        sig = inspect.signature(JobParams.__init__)
+        job_attrs = {p for p in sig.parameters if p != "self"}
 
         jobs = {}
         for job_name in dir(self.settings.jobs):
             job = getattr(self.settings.jobs, job_name, None)
             if hasattr(job, "enabled"):
                 job_dict = {"enabled": job.enabled}
-                for attr in ("max_strikes", "min_speed", "message_patterns",
-                             "target_tags", "keep_archives",
-                             "max_concurrent_searches", "min_days_between_searches"):
+                for attr in job_attrs:
                     if hasattr(job, attr):
                         job_dict[attr] = getattr(job, attr)
                 jobs[job_name] = job_dict
