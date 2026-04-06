@@ -101,6 +101,24 @@
     padding: 0.3rem 0.5rem;
 }
 
+/* Save flash animation */
+@keyframes flash-save {
+    0%   { background-color: rgba(46, 125, 50, 0.3); }
+    100% { background-color: transparent; }
+}
+@keyframes flash-error {
+    0%   { background-color: rgba(198, 40, 40, 0.3); }
+    100% { background-color: transparent; }
+}
+.flash-save {
+    animation: flash-save 1.5s ease-out;
+    border-radius: var(--pico-border-radius);
+}
+.flash-error {
+    animation: flash-error 1.5s ease-out;
+    border-radius: var(--pico-border-radius);
+}
+
 /* Nav active link */
 nav a.active {
     color: var(--pico-primary);

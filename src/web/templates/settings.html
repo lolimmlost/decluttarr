@@ -16,13 +16,13 @@
             <label>
                 Test Run
                 <input type="checkbox" role="switch" x-model="config.general.test_run"
-                       @change="saveGeneral('test_run', config.general.test_run)">
+                       @change="saveGeneral('test_run', config.general.test_run, $event)">
                 <small x-show="isOverridden('general.test_run')" class="override-badge">overridden</small>
             </label>
             <label>
                 Timer (minutes)
                 <input type="number" x-model.number="config.general.timer" min="1" step="1"
-                       @change="saveGeneral('timer', config.general.timer)">
+                       @change="saveGeneral('timer', config.general.timer, $event)">
                 <small x-show="isOverridden('general.timer')" class="override-badge">overridden</small>
             </label>
         </div>
@@ -30,7 +30,7 @@
         <div class="grid">
             <label>
                 Log Level
-                <select x-model="config.general.log_level" @change="saveGeneral('log_level', config.general.log_level)">
+                <select x-model="config.general.log_level" @change="saveGeneral('log_level', config.general.log_level, $event)">
                     <option>DEBUG</option>
                     <option>VERBOSE</option>
                     <option>INFO</option>
@@ -41,7 +41,7 @@
             <label>
                 SSL Verification
                 <input type="checkbox" role="switch" x-model="config.general.ssl_verification"
-                       @change="saveGeneral('ssl_verification', config.general.ssl_verification)">
+                       @change="saveGeneral('ssl_verification', config.general.ssl_verification, $event)">
             </label>
         </div>
 
@@ -49,7 +49,7 @@
             <label>
                 Private Tracker Handling
                 <select x-model="config.general.private_tracker_handling"
-                        @change="saveGeneral('private_tracker_handling', config.general.private_tracker_handling)">
+                        @change="saveGeneral('private_tracker_handling', config.general.private_tracker_handling, $event)">
                     <option value="remove">Remove</option>
                     <option value="skip">Skip</option>
                     <option value="obsolete_tag">Obsolete Tag</option>
@@ -58,7 +58,7 @@
             <label>
                 Public Tracker Handling
                 <select x-model="config.general.public_tracker_handling"
-                        @change="saveGeneral('public_tracker_handling', config.general.public_tracker_handling)">
+                        @change="saveGeneral('public_tracker_handling', config.general.public_tracker_handling, $event)">
                     <option value="remove">Remove</option>
                     <option value="skip">Skip</option>
                     <option value="obsolete_tag">Obsolete Tag</option>
@@ -70,12 +70,12 @@
             <label>
                 Obsolete Tag
                 <input type="text" x-model="config.general.obsolete_tag"
-                       @change="saveGeneral('obsolete_tag', config.general.obsolete_tag)">
+                       @change="saveGeneral('obsolete_tag', config.general.obsolete_tag, $event)">
             </label>
             <label>
                 Protected Tag
                 <input type="text" x-model="config.general.protected_tag"
-                       @change="saveGeneral('protected_tag', config.general.protected_tag)">
+                       @change="saveGeneral('protected_tag', config.general.protected_tag, $event)">
             </label>
         </div>
     </article>
@@ -96,20 +96,20 @@
                         <label>
                             Enabled
                             <input type="checkbox" role="switch" x-model="jobConfig.enabled"
-                                   @change="saveJob(jobName, 'enabled', jobConfig.enabled)">
+                                   @change="saveJob(jobName, 'enabled', jobConfig.enabled, $event)">
                         </label>
                         <template x-if="'max_strikes' in jobConfig">
                             <label>
                                 Max Strikes
                                 <input type="number" x-model.number="jobConfig.max_strikes" min="1"
-                                       @change="saveJob(jobName, 'max_strikes', jobConfig.max_strikes)">
+                                       @change="saveJob(jobName, 'max_strikes', jobConfig.max_strikes, $event)">
                             </label>
                         </template>
                         <template x-if="'min_speed' in jobConfig">
                             <label>
                                 Min Speed (KB/s)
                                 <input type="number" x-model.number="jobConfig.min_speed" min="0"
-                                       @change="saveJob(jobName, 'min_speed', jobConfig.min_speed)">
+                                       @change="saveJob(jobName, 'min_speed', jobConfig.min_speed, $event)">
                             </label>
                         </template>
                     </div>
@@ -147,13 +147,22 @@ function settingsPage() {
         isOverridden(key) {
             return key in this.overrides;
         },
-        async saveGeneral(attr, value) {
-            await this.saveOverride(`general.${attr}`, value);
+        async saveGeneral(attr, value, event) {
+            await this.saveOverride(`general.${attr}`, value, event);
         },
-        async saveJob(jobName, attr, value) {
-            await this.saveOverride(`jobs.${jobName}.${attr}`, value);
+        async saveJob(jobName, attr, value, event) {
+            await this.saveOverride(`jobs.${jobName}.${attr}`, value, event);
         },
-        async saveOverride(key, value) {
+        flashEl(event, cls) {
+            if (!event) return;
+            const el = event.target.closest('label') || event.target;
+            el.classList.remove('flash-save', 'flash-error');
+            // Force reflow so re-adding the class restarts the animation
+            void el.offsetWidth;
+            el.classList.add(cls);
+            el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
+        },
+        async saveOverride(key, value, event) {
             try {
                 const res = await fetch('/api/config', {
                     method: 'PATCH',
@@ -162,12 +171,12 @@ function settingsPage() {
                 });
                 if (res.ok) {
                     this.overrides[key] = value;
-                    this.showMessage('Saved');
+                    this.flashEl(event, 'flash-save');
                 } else {
-                    this.showMessage('Error saving', true);
+                    this.flashEl(event, 'flash-error');
                 }
             } catch {
-                this.showMessage('Error saving', true);
+                this.flashEl(event, 'flash-error');
             }
         },
         async resetOverrides() {
