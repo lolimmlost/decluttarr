@@ -456,6 +456,10 @@ async def page_settings(request: Request):
 @page_router.get("/partials/queue-table", response_class=HTMLResponse)
 async def partial_queue_table(request: Request):
     templates = request.app.state.templates
+    if not getattr(request.app.state, "first_cycle_done", True):
+        return HTMLResponse(
+            '<p><em>Waiting for first cycle to complete\u2026</em></p>'
+        )
     items = await _fetch_queue(request)
     return templates.TemplateResponse("partials/queue_table.html", {
         "request": request,
@@ -468,6 +472,10 @@ async def partial_queue_table(request: Request):
 async def partial_activity_feed(request: Request):
     templates = request.app.state.templates
     db = request.app.state.database
+    if not getattr(request.app.state, "first_cycle_done", True):
+        return HTMLResponse(
+            '<p><em>Waiting for first cycle to complete\u2026</em></p>'
+        )
     cursor = await db.db.execute(
         "SELECT * FROM activity_log ORDER BY timestamp DESC LIMIT 20"
     )

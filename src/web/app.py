@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 
 from src.web.config_manager import ConfigManager
 from src.web.database import ActivityRecorder, Database
-from src.web.events import EventBus
+from src.web.events import EventBus, EventType
 from src.web.routes import api_router, page_router
 
 
@@ -28,6 +28,7 @@ def create_app(settings, event_bus: EventBus, trigger_event: asyncio.Event = Non
     app.state.templates = templates
     app.state.start_time = time.time()
     app.state.trigger_event = trigger_event
+    app.state.first_cycle_done = False
 
     # Register routes
     app.include_router(api_router)
@@ -57,6 +58,21 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
     recorder = ActivityRecorder(database, event_bus)
     await recorder.start()
     app.state.recorder = recorder
+
+    # Track when the first main-loop cycle finishes so partials can show
+    # a "waiting" message instead of hanging on arr API calls during startup.
+    async def _mark_first_cycle_done():
+        queue = event_bus.subscribe()
+        try:
+            while True:
+                event = await queue.get()
+                if event.event_type == EventType.CYCLE_END:
+                    app.state.first_cycle_done = True
+                    break
+        finally:
+            event_bus.unsubscribe(queue)
+
+    asyncio.create_task(_mark_first_cycle_done())
 
     # Schedule daily cleanup of old activity log entries
     async def _periodic_cleanup():
