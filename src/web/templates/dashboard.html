@@ -56,6 +56,28 @@
 
 {% block scripts %}
 <script>
+function queueRow(item) {
+    return {
+        protecting: false,
+        protect() {
+            this.protecting = true;
+            fetch('/api/protected/' + encodeURIComponent(item.download_id), {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({title: item.title, arr_name: item.arr_name})
+            }).then(() => {
+                htmx.trigger('#queue-container', 'refresh');
+                this.protecting = false;
+            });
+        },
+        unprotect() {
+            fetch('/api/protected/' + encodeURIComponent(item.download_id), {
+                method: 'DELETE'
+            }).then(() => htmx.trigger('#queue-container', 'refresh'));
+        }
+    }
+}
+
 function dashboard() {
     return {
         triggering: false,
