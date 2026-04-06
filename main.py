@@ -111,6 +111,11 @@ async def main_with_restart():
     while True:
         try:
             await main()
+        except SystemExit as e:
+            if e.code == 0:
+                raise  # Clean shutdown (e.g. SIGTERM), don't restart
+            logger.error("Main loop exited (unreachable service). Restarting in 30 seconds...")
+            await asyncio.sleep(30)
         except Exception as e:
             logger.error(f"Main loop crashed: {e}. Restarting in 30 seconds...")
             await asyncio.sleep(30)
