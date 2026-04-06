@@ -15,8 +15,7 @@
         </thead>
         <tbody>
             {% for item in items %}
-            <tr class="{% if item.strikes %}row-flagged{% endif %}{% if item.protected %} row-protected{% endif %}"
-                x-data="queueRow({{ item | tojson }})">
+            <tr class="{% if item.strikes %}row-flagged{% endif %}{% if item.protected %} row-protected{% endif %}">
                 <td>
                     <span class="badge" data-arr-type="{{ item.arr_type }}">{{ item.arr_name }}</span>
                 </td>
@@ -57,11 +56,13 @@
                 </td>
                 <td>
                     {% if not item.protected %}
-                    <button class="outline small-btn" :aria-busy="protecting" @click="protect()">
+                    <button class="outline small-btn"
+                            onclick="protectDownload(this, '{{ item.download_id }}', '{{ item.title | e }}', '{{ item.arr_name }}')">
                         Protect
                     </button>
                     {% else %}
-                    <button class="outline small-btn btn-unprotect" @click="unprotect()">
+                    <button class="outline small-btn btn-unprotect"
+                            onclick="unprotectDownload('{{ item.download_id }}')">
                         Unprotect
                     </button>
                     {% endif %}
