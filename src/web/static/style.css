@@ -25,7 +25,7 @@
 }
 
 .protected-badge {
-    background: #1565c0;
+    background: #2e7d32;
     color: white;
 }
 
@@ -67,7 +67,18 @@
 }
 
 .row-protected {
-    border-left: 3px solid #1565c0;
+    border-left: 3px solid #2e7d32;
+    background: rgba(46, 125, 50, 0.08);
+}
+
+.row-protected .btn-unprotect {
+    color: #2e7d32;
+    border-color: #2e7d32;
+}
+
+.row-protected .btn-unprotect:hover {
+    background: #2e7d32;
+    color: white;
 }
 
 .action-removed {
