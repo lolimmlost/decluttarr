@@ -103,20 +103,34 @@
 
 /* Save flash animation */
 @keyframes flash-save {
-    0%   { background-color: rgba(46, 125, 50, 0.3); }
-    100% { background-color: transparent; }
+    0%   {
+        background-color: rgba(46, 125, 50, 0.35);
+        box-shadow: 0 0 0 6px rgba(46, 125, 50, 0.35);
+    }
+    100% {
+        background-color: transparent;
+        box-shadow: 0 0 0 6px transparent;
+    }
 }
 @keyframes flash-error {
-    0%   { background-color: rgba(198, 40, 40, 0.3); }
-    100% { background-color: transparent; }
+    0%   {
+        background-color: rgba(198, 40, 40, 0.35);
+        box-shadow: 0 0 0 6px rgba(198, 40, 40, 0.35);
+    }
+    100% {
+        background-color: transparent;
+        box-shadow: 0 0 0 6px transparent;
+    }
+}
+.flash-save,
+.flash-error {
+    border-radius: var(--pico-border-radius);
 }
 .flash-save {
     animation: flash-save 1.5s ease-out;
-    border-radius: var(--pico-border-radius);
 }
 .flash-error {
     animation: flash-error 1.5s ease-out;
-    border-radius: var(--pico-border-radius);
 }
 
 /* Nav active link */
