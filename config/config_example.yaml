@@ -5,6 +5,7 @@ general:
   # request_timeout: 15 # Optional: timeout for all HTTP/API calls in seconds
   # ignored_download_clients: ["emulerr"]
   # ssl_verification: false # Optional: Defaults to true
+  # request_timeout: 15 # Optional: Request timeout in seconds. Defaults to 15. Can be overridden per instance.
   # private_tracker_handling: "obsolete_tag" # remove, skip, obsolete_tag. Optional. Default: remove
   # public_tracker_handling: "remove"  # remove, skip, obsolete_tag. Optional. Default: remove
   # obsolete_tag: "Obsolete" # optional. Default: "Obsolete"
@@ -53,6 +54,7 @@ instances:
   sonarr:
     - base_url: "http://sonarr:8989"
       api_key: "xxxx"
+      # timeout: 30 # Optional: Overrides general timeout for this instance.
   radarr:
     - base_url: "http://radarr:7878"
       api_key: "xxxx"
@@ -72,6 +74,7 @@ download_clients:
       # username: xxxx # (optional -> if not provided, assuming not needed)
       # password: xxxx # (optional -> if not provided, assuming not needed)
       # name: "qBittorrent" # (optional -> if not provided, assuming "qBittorrent". Must correspond with what is specified in your *arr as download client name)
+      # timeout: 30 # (optional -> overrides general timeout for this instance)
   # sabnzbd:
   #   - base_url: "http://sabnzbd:8080" # SABnzbd server URL
   #     api_key: "your_api_key_here" # (required -> SABnzbd API key)

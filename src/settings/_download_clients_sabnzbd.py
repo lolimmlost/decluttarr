@@ -43,8 +43,10 @@ class SabnzbdClient:
         base_url: str = None,
         api_key: str = None,
         name: str = None,
+        timeout: int | None = None,
     ):
         self.settings = settings
+        self._timeout = timeout
         if not base_url:
             logger.error("Skipping SABnzbd client entry: 'base_url' is required.")
             error = "SABnzbd client must have a 'base_url'."
@@ -68,6 +70,13 @@ class SabnzbdClient:
 
         self._remove_none_attributes()
 
+    @property
+    def timeout(self):
+        instance_timeout = getattr(self, "_timeout", None)
+        if instance_timeout is not None:
+            return instance_timeout
+        return getattr(getattr(self.settings, "general", None), "request_timeout", 15)
+
     def _remove_none_attributes(self):
         """Remove attributes that are None to keep the object clean."""
         for attr in list(vars(self)):
@@ -80,7 +89,7 @@ class SabnzbdClient:
             "_download_clients_sabnzbd.py/fetch_version: Getting SABnzbd Version"
         )
         params = {"mode": "version", "apikey": self.api_key, "output": "json"}
-        response = await make_request("get", self.api_url, self.settings, params=params)
+        response = await make_request("get", self.api_url, self.settings, timeout=self.timeout, params=params)
         response_data = response.json()
         self.version = response_data.get("version", "unknown")
         logger.debug(
@@ -109,6 +118,7 @@ class SabnzbdClient:
                 "get",
                 self.api_url,
                 self.settings,
+                timeout=self.timeout,
                 params=params,
                 log_error=False,
                 ignore_test_run=True,
@@ -129,6 +139,7 @@ class SabnzbdClient:
             "get",
             self.api_url,
             self.settings,
+            timeout=self.timeout,
             params=params,
         )
         status_data = response.json()
@@ -160,6 +171,7 @@ class SabnzbdClient:
             "get",
             self.api_url,
             self.settings,
+            timeout=self.timeout,
             params=params,
         )
         queue_data = response.json()
@@ -175,6 +187,7 @@ class SabnzbdClient:
             "get",
             self.api_url,
             self.settings,
+            timeout=self.timeout,
             params=params,
         )
         history_data = response.json()
@@ -196,6 +209,7 @@ class SabnzbdClient:
             "get",
             self.api_url,
             self.settings,
+            timeout=self.timeout,
             params=params,
         )
 
@@ -215,6 +229,7 @@ class SabnzbdClient:
             "get",
             self.api_url,
             self.settings,
+            timeout=self.timeout,
             params=params,
         )
 
@@ -234,6 +249,7 @@ class SabnzbdClient:
             "get",
             self.api_url,
             self.settings,
+            timeout=self.timeout,
             params=params,
         )
 
@@ -252,6 +268,7 @@ class SabnzbdClient:
             "get",
             self.api_url,
             self.settings,
+            timeout=self.timeout,
             params=params,
         )
 
@@ -308,6 +325,7 @@ class SabnzbdClient:
             "get",
             self.api_url,
             self.settings,
+            timeout=self.timeout,
             params=params,
         )
         status_data = response.json()

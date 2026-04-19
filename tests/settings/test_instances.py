@@ -39,6 +39,7 @@ async def test_get_refresh_item_calls_make_request_with_correct_params(
             "get",
             arr.api_url + "/" + expected_key,
             settings,
+            timeout=arr.timeout,
             headers={"X-Api-Key": api_key},
         )
         assert result == fake_json

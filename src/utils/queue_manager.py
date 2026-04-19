@@ -75,6 +75,7 @@ class QueueManager:
             method="POST",
             endpoint=f"{self.arr.api_url}/command",
             settings=self.settings,
+            timeout=self.arr.timeout,
             json={"name": "RefreshMonitoredDownloads"},
             headers={"X-Api-Key": self.arr.api_key},
         )
@@ -109,6 +110,7 @@ class QueueManager:
             method="GET",
             endpoint=f"{self.arr.api_url}/queue",
             settings=self.settings,
+            timeout=self.arr.timeout,
             params=params,
             headers={"X-Api-Key": self.arr.api_key},
         )

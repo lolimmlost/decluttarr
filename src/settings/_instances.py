@@ -122,6 +122,7 @@ class ArrInstances(list):
                             arr_type=arr_type,
                             base_url=client_config["base_url"],
                             api_key=client_config["api_key"],
+                            timeout=client_config.get("timeout"),
                         ),
                     )
                 except KeyError as e:
@@ -135,7 +136,7 @@ class ArrInstance:
     version: str = None
     name: str = None
 
-    def __init__(self, settings, arr_type: str, base_url: str, api_key: str):
+    def __init__(self, settings, arr_type: str, base_url: str, api_key: str, timeout: int | None = None):
         if not base_url:
             logger.error(f"Skipping {arr_type} client entry: 'base_url' is required.")
             error = f"{arr_type} client must have a 'base_url'."
@@ -147,6 +148,7 @@ class ArrInstance:
             raise ValueError(error)
 
         self.settings = settings
+        self._timeout = timeout
         self.tracker = Tracker()
         self.arr_type = arr_type
         self.base_url = base_url.rstrip("/")
@@ -163,11 +165,17 @@ class ArrInstance:
             self.refresh_item_id_key = self.refresh_item_key + "Id"
             self.refresh_item_command = getattr(RefreshItemCommand, arr_type)
 
+    @property
+    def timeout(self):
+        if self._timeout is not None:
+            return self._timeout
+        return getattr(getattr(self.settings, "general", None), "request_timeout", 15)
+
     async def _check_ui_language(self):
         """Check if the UI language is set to English."""
         endpoint = self.api_url + "/config/ui"
         headers = {"X-Api-Key": self.api_key}
-        response = await make_request("get", endpoint, self.settings, headers=headers)
+        response = await make_request("get", endpoint, self.settings, timeout=self.timeout, headers=headers)
         ui_language = (response.json())["uiLanguage"]
         if ui_language > 1:  # Not English
             logger.error("!! %s Error: !!", self.name)
@@ -216,6 +224,7 @@ class ArrInstance:
                 "get",
                 endpoint,
                 self.settings,
+                timeout=self.timeout,
                 headers=headers,
                 log_error=False,
             )
@@ -264,7 +273,7 @@ class ArrInstance:
         endpoint = self.api_url + "/downloadclient"
         headers = {"X-Api-Key": self.api_key}
 
-        response = await make_request("get", endpoint, self.settings, headers=headers)
+        response = await make_request("get", endpoint, self.settings, timeout=self.timeout, headers=headers)
         return extract_json_from_response(response)
 
     async def _check_matching_decluttarr_download_clients(self):
@@ -332,6 +341,7 @@ class ArrInstance:
             "delete",
             endpoint,
             self.settings,
+            timeout=self.timeout,
             headers=headers,
             params=query,
         )
@@ -345,27 +355,27 @@ class ArrInstance:
         endpoint = f"{self.api_url}/{self.detail_item_key}/{detail_id}"
         headers = {"X-Api-Key": self.api_key}
 
-        response = await make_request("get", endpoint, self.settings, headers=headers)
+        response = await make_request("get", endpoint, self.settings, timeout=self.timeout, headers=headers)
         return response.json()["monitored"]
 
     async def get_series(self):
         """Fetch download client information and return the implementation value."""
         endpoint = self.api_url + "/series"
         headers = {"X-Api-Key": self.api_key}
-        response = await make_request("get", endpoint, self.settings, headers=headers)
+        response = await make_request("get", endpoint, self.settings, timeout=self.timeout, headers=headers)
         return response.json()
 
     async def get_root_folders(self):
         """Fetch Root folders."""
         endpoint = self.api_url + "/rootFolder"
         headers = {"X-Api-Key": self.api_key}
-        response = await make_request("get", endpoint, self.settings, headers=headers)
+        response = await make_request("get", endpoint, self.settings, timeout=self.timeout, headers=headers)
         return response.json()
 
     async def get_refresh_item(self):
         endpoint = self.api_url + "/" + self.refresh_item_key
         headers = {"X-Api-Key": self.api_key}
-        response = await make_request("get", endpoint, self.settings, headers=headers)
+        response = await make_request("get", endpoint, self.settings, timeout=self.timeout, headers=headers)
         return response.json()
 
     async def get_refresh_item_by_path(self, folder_path):
@@ -383,6 +393,7 @@ class ArrInstance:
             method="POST",
             endpoint=f"{self.api_url}/command",
             settings=self.settings,
+            timeout=self.timeout,
             json={
                 "name": self.refresh_item_command,
                 self.refresh_item_id_key: refresh_item_id,
