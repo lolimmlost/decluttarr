@@ -72,7 +72,7 @@ class ConfigManager:
         from src.settings._jobs import JobParams
 
         # Skip non-overridable keys
-        _skip = {"web_enabled", "web_host", "web_port", "ignored_download_clients"}
+        _skip = {"ignored_download_clients"}
 
         general = {}
         for attr in General.__annotations__:

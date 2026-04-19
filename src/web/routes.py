@@ -21,7 +21,7 @@ def _cached_json(data: dict, max_age: int = 5) -> JSONResponse:
 
 # Derive allowed config keys from settings classes so they stay in sync automatically.
 # Keys that should NOT be overridable at runtime:
-_GENERAL_SKIP = {"web_enabled", "web_host", "web_port", "ignored_download_clients"}
+_GENERAL_SKIP = {"ignored_download_clients"}
 
 
 def _get_allowed_general_keys() -> set:

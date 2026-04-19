@@ -14,7 +14,7 @@ from src.web.events import EventBus, NoOpEventBus, Event, EventType
 settings = Settings()
 
 # Event bus for web UI integration
-web_enabled = getattr(settings.general, "web_enabled", True)
+web_enabled = settings.web.enabled
 event_bus = EventBus() if web_enabled else NoOpEventBus()
 trigger_event = asyncio.Event() if web_enabled else None
 

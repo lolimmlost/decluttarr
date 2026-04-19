@@ -45,9 +45,9 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
     database = Database()
     await database.init()
 
-    host = getattr(settings.general, "web_host", "0.0.0.0")
-    port = getattr(settings.general, "web_port", 9999)
-    proxy_prefix = getattr(settings.general, "proxy_prefix", None)
+    host = settings.web.host
+    port = settings.web.port
+    proxy_prefix = getattr(settings.web, "proxy_prefix", None)
     root_path = f"/{proxy_prefix}/{port}" if proxy_prefix else None
 
     # Create app
