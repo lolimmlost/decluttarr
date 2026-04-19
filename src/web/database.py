@@ -9,41 +9,44 @@ from src.web.events import Event, EventType
 
 DEFAULT_DB_PATH = os.environ.get("DECLUTTARR_DB_PATH", "./data/decluttarr.db")
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS activity_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-    arr_name TEXT NOT NULL,
-    arr_type TEXT NOT NULL,
-    job_name TEXT NOT NULL,
-    action TEXT NOT NULL,
-    download_id TEXT,
-    title TEXT NOT NULL,
-    strikes INTEGER,
-    max_strikes INTEGER,
-    details TEXT,
-    test_run BOOLEAN NOT NULL DEFAULT 0
-);
+MIGRATIONS = [
+    # v1: initial schema
+    """
+    CREATE TABLE IF NOT EXISTS activity_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL DEFAULT (datetime('now')),
+        arr_name TEXT NOT NULL,
+        arr_type TEXT NOT NULL,
+        job_name TEXT NOT NULL,
+        action TEXT NOT NULL,
+        download_id TEXT,
+        title TEXT NOT NULL,
+        strikes INTEGER,
+        max_strikes INTEGER,
+        details TEXT,
+        test_run BOOLEAN NOT NULL DEFAULT 0
+    );
 
-CREATE TABLE IF NOT EXISTS protected_downloads (
-    download_id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    arr_name TEXT NOT NULL,
-    protected_at TEXT NOT NULL DEFAULT (datetime('now')),
-    reason TEXT
-);
+    CREATE TABLE IF NOT EXISTS protected_downloads (
+        download_id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        arr_name TEXT NOT NULL,
+        protected_at TEXT NOT NULL DEFAULT (datetime('now')),
+        reason TEXT
+    );
 
-CREATE TABLE IF NOT EXISTS config_overrides (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL,
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
+    CREATE TABLE IF NOT EXISTS config_overrides (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
 
-CREATE INDEX IF NOT EXISTS idx_activity_timestamp ON activity_log(timestamp);
-CREATE INDEX IF NOT EXISTS idx_activity_arr_name ON activity_log(arr_name);
-CREATE INDEX IF NOT EXISTS idx_activity_action ON activity_log(action);
-CREATE INDEX IF NOT EXISTS idx_activity_job_name ON activity_log(job_name);
-"""
+    CREATE INDEX IF NOT EXISTS idx_activity_timestamp ON activity_log(timestamp);
+    CREATE INDEX IF NOT EXISTS idx_activity_arr_name ON activity_log(arr_name);
+    CREATE INDEX IF NOT EXISTS idx_activity_action ON activity_log(action);
+    CREATE INDEX IF NOT EXISTS idx_activity_job_name ON activity_log(job_name);
+    """,
+]
 
 
 class Database:
@@ -55,7 +58,25 @@ class Database:
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self._db = await aiosqlite.connect(self.db_path)
         self._db.row_factory = aiosqlite.Row
-        await self._db.executescript(SCHEMA)
+        await self._migrate()
+
+    async def _migrate(self):
+        await self._db.execute(
+            "CREATE TABLE IF NOT EXISTS schema_version (version INTEGER NOT NULL)"
+        )
+        cursor = await self._db.execute("SELECT version FROM schema_version")
+        row = await cursor.fetchone()
+        current = row[0] if row else 0
+
+        for i, migration in enumerate(MIGRATIONS, start=1):
+            if i > current:
+                await self._db.executescript(migration)
+                logger.info(f"Database migrated to schema v{i}")
+
+        if current == 0:
+            await self._db.execute("INSERT INTO schema_version (version) VALUES (?)", (len(MIGRATIONS),))
+        elif current < len(MIGRATIONS):
+            await self._db.execute("UPDATE schema_version SET version = ?", (len(MIGRATIONS),))
         await self._db.commit()
 
     async def close(self):
