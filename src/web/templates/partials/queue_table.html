@@ -56,13 +56,15 @@
                 </td>
                 <td>
                     {% if not item.protected %}
-                    <button class="outline small-btn"
-                            onclick="protectDownload(this, '{{ item.download_id }}', '{{ item.title | e }}', '{{ item.arr_name }}')">
+                    <button class="outline small-btn btn-protect"
+                            data-download-id="{{ item.download_id }}"
+                            data-title="{{ item.title }}"
+                            data-arr-name="{{ item.arr_name }}">
                         Protect
                     </button>
                     {% else %}
                     <button class="outline small-btn btn-unprotect"
-                            onclick="unprotectDownload('{{ item.download_id }}')">
+                            data-download-id="{{ item.download_id }}">
                         Unprotect
                     </button>
                     {% endif %}

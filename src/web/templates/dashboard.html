@@ -56,26 +56,30 @@
 
 {% block scripts %}
 <script>
-function protectDownload(btn, downloadId, title, arrName) {
-    btn.disabled = true;
-    btn.setAttribute('aria-busy', 'true');
-    fetch(rootPath + '/api/protected/' + encodeURIComponent(downloadId), {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({title: title, arr_name: arrName})
-    }).then(() => {
-        htmx.trigger('#queue-container', 'refresh');
-    }).finally(() => {
-        btn.disabled = false;
-        btn.removeAttribute('aria-busy');
-    });
-}
-
-function unprotectDownload(downloadId) {
-    fetch(rootPath + '/api/protected/' + encodeURIComponent(downloadId), {
-        method: 'DELETE'
-    }).then(() => htmx.trigger('#queue-container', 'refresh'));
-}
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.btn-protect');
+    if (btn) {
+        btn.disabled = true;
+        btn.setAttribute('aria-busy', 'true');
+        fetch(rootPath + '/api/protected/' + encodeURIComponent(btn.dataset.downloadId), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title: btn.dataset.title, arr_name: btn.dataset.arrName})
+        }).then(function() {
+            htmx.trigger('#queue-container', 'refresh');
+        }).finally(function() {
+            btn.disabled = false;
+            btn.removeAttribute('aria-busy');
+        });
+        return;
+    }
+    var ubtn = e.target.closest('.btn-unprotect');
+    if (ubtn) {
+        fetch(rootPath + '/api/protected/' + encodeURIComponent(ubtn.dataset.downloadId), {
+            method: 'DELETE'
+        }).then(function() { htmx.trigger('#queue-container', 'refresh'); });
+    }
+});
 
 function dashboard() {
     return {
