@@ -131,7 +131,7 @@ async def start():
         main_task = asyncio.create_task(main_with_restart())
         await asyncio.gather(main_task, web_task)
     else:
-        await main()
+        await main_with_restart()
 
 
 if __name__ == "__main__":
