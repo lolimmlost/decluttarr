@@ -59,7 +59,7 @@
 function protectDownload(btn, downloadId, title, arrName) {
     btn.disabled = true;
     btn.setAttribute('aria-busy', 'true');
-    fetch('/api/protected/' + encodeURIComponent(downloadId), {
+    fetch(rootPath + '/api/protected/' + encodeURIComponent(downloadId), {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({title: title, arr_name: arrName})
@@ -72,7 +72,7 @@ function protectDownload(btn, downloadId, title, arrName) {
 }
 
 function unprotectDownload(downloadId) {
-    fetch('/api/protected/' + encodeURIComponent(downloadId), {
+    fetch(rootPath + '/api/protected/' + encodeURIComponent(downloadId), {
         method: 'DELETE'
     }).then(() => htmx.trigger('#queue-container', 'refresh'));
 }
@@ -83,7 +83,7 @@ function dashboard() {
         message: '',
         evtSource: null,
         init() {
-            this.evtSource = new EventSource('/api/events');
+            this.evtSource = new EventSource(rootPath + '/api/events');
             this.evtSource.addEventListener('item_removed', () => {
                 htmx.trigger('#queue-container', 'refresh');
                 htmx.trigger('#activity-feed', 'refresh');
@@ -109,7 +109,7 @@ function dashboard() {
             this.triggering = true;
             this.message = '';
             try {
-                const res = await fetch('/api/trigger', { method: 'POST' });
+                const res = await fetch(rootPath + '/api/trigger', { method: 'POST' });
                 const data = await res.json();
                 this.message = data.status === 'triggered' ? 'Cycle triggered!' : 'Could not trigger';
             } catch {
@@ -120,7 +120,7 @@ function dashboard() {
         },
         async toggleTestRun() {
             try {
-                const res = await fetch('/api/config/test-run', { method: 'POST' });
+                const res = await fetch(rootPath + '/api/config/test-run', { method: 'POST' });
                 const data = await res.json();
                 this.message = `Test Run: ${data.test_run ? 'ON' : 'OFF'}`;
                 htmx.trigger('[hx-get="/partials/status-bar"]', 'refresh');

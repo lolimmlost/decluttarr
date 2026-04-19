@@ -45,6 +45,11 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
     database = Database()
     await database.init()
 
+    host = getattr(settings.general, "web_host", "0.0.0.0")
+    port = getattr(settings.general, "web_port", 9999)
+    proxy_prefix = getattr(settings.general, "proxy_prefix", None)
+    root_path = f"/{proxy_prefix}/{port}" if proxy_prefix else None
+
     # Create app
     app = create_app(settings, event_bus, trigger_event)
     app.state.database = database
@@ -95,17 +100,17 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
     except Exception as e:  # noqa: BLE001
         logger.debug(f"Activity log cleanup error: {e}")
 
-    host = getattr(settings.general, "web_host", "0.0.0.0")
-    port = getattr(settings.general, "web_port", 9999)
-
     logger.info(f"Web UI starting on http://{host}:{port}")
+    if proxy_prefix:
+       logger.debug(f"Web UI root path:{root_path}") 
 
     config = uvicorn.Config(
         app,
         host=host,
         port=port,
-        log_level="warning",
+        log_level="debug",
         access_log=False,
+        root_path=root_path,
     )
     server = uvicorn.Server(config)
     await server.serve()
