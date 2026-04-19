@@ -72,6 +72,7 @@ Feature overview:
 -   Removing completed downloads from your download client that match certain criteria (remove_done_seeding)
 -   Periodically searching for better content on movies/series/albums etc. where cutoff has not been reached yet (search_unmet_cutoff)
 -   Periodically searching for missing content that has not yet been found (search_missing)
+-   Built-in web UI for monitoring, activity history, and runtime control (enabled by default on port 9999)
 
 
 Key behaviors:
@@ -706,6 +707,45 @@ Supported download clients: **qBittorrent** and **SABnzbd**.
     - base_url: URL under which SABnzbd can be reached (mandatory)
     - api_key: SABnzbd API key (mandatory)
     - name: Optional. Needs to correspond with the name that you have set up in your Arr instance. Defaults to "SABnzbd"
+
+### **Web UI**
+
+Decluttarr includes an optional lightweight web interface for monitoring, activity history, and runtime control. It is enabled by default on port 9999.
+
+Features:
+-   **Dashboard** — real-time queue view across all arr instances, instance status cards, live activity feed, and a "Run Now" button to manually trigger a cycle
+-   **Activity Log** — searchable, filterable, paginated history of every action (flags, removals, recoveries, strikes) stored in SQLite
+-   **Settings Editor** — toggle `test_run`, enable/disable jobs, and adjust `max_strikes`/`min_speed` at runtime without editing YAML or restarting
+-   **Download Protection** — protect individual downloads from removal via the UI (supplements the qBit "Keep" tag)
+-   **REST API** — full JSON API with auto-generated OpenAPI docs at `/api/docs`
+-   **SSE Live Updates** — server-sent events push changes to the browser in real time
+
+#### Configuration
+
+All web settings are optional and have sensible defaults:
+
+```yaml
+web:
+  enabled: true       # Set to false to disable the web UI entirely
+  host: "0.0.0.0"    # Listen address (default: 0.0.0.0)
+  port: 9999          # Listen port (default: 9999)
+  proxy_prefix: ""    # Set if running behind a reverse proxy with a path prefix
+```
+
+Environment variable equivalents: `WEB_ENABLED`, `WEB_HOST`, `WEB_PORT`, `PROXY_PREFIX`
+
+#### Docker
+
+Expose the web UI port in your docker-compose:
+
+```yaml
+ports:
+  - "9999:9999"
+```
+
+#### Disabling the Web UI
+
+Set `enabled: false` in the `web` config section, or set the environment variable `WEB_ENABLED=false`. When disabled, the event bus uses a no-op implementation with zero overhead.
 
 
 ## Disclaimer
