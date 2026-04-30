@@ -104,11 +104,25 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
     if proxy_prefix:
        logger.debug(f"Web UI root path:{root_path}") 
 
+    # Map the app's log level to one uvicorn understands. VERBOSE is custom,
+    # so fall back to info; anything unrecognized also defaults to info.
+    _uvicorn_levels = {
+        "DEBUG": "debug",
+        "VERBOSE": "info",
+        "INFO": "info",
+        "WARNING": "warning",
+        "ERROR": "error",
+        "CRITICAL": "critical",
+    }
+    uvicorn_log_level = _uvicorn_levels.get(
+        settings.general.log_level.upper(), "info",
+    )
+
     config = uvicorn.Config(
         app,
         host=host,
         port=port,
-        log_level="debug",
+        log_level=uvicorn_log_level,
         access_log=False,
         root_path=root_path,
     )
