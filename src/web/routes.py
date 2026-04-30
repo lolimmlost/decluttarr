@@ -246,7 +246,8 @@ async def api_strikes(request: Request):
 async def api_protect(download_id: str, request: Request):
     db = request.app.state.database
     event_bus = request.app.state.event_bus
-    body = await request.json() if request.headers.get("content-type") == "application/json" else {}
+    content_type = request.headers.get("content-type", "")
+    body = await request.json() if content_type.startswith("application/json") else {}
     title = body.get("title", "Unknown")
     arr_name = body.get("arr_name", "")
     reason = body.get("reason", "")
