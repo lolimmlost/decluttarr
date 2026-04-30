@@ -68,15 +68,21 @@ class Database:
         row = await cursor.fetchone()
         current = row[0] if row else 0
 
+        # Seed the version row if missing so migration scripts can UPDATE it.
+        if row is None:
+            await self._db.execute(
+                "INSERT INTO schema_version (version) VALUES (?)", (current,),
+            )
+            await self._db.commit()
+
+        # Bundle each migration with its version bump in a single executescript
+        # call so a partial failure leaves schema_version pointing at the last
+        # fully-applied version (rather than skipping ahead or silently retrying).
         for i, migration in enumerate(MIGRATIONS, start=1):
             if i > current:
-                await self._db.executescript(migration)
+                script = f"{migration}\nUPDATE schema_version SET version = {i};"
+                await self._db.executescript(script)
                 logger.info(f"Database migrated to schema v{i}")
-
-        if current == 0:
-            await self._db.execute("INSERT INTO schema_version (version) VALUES (?)", (len(MIGRATIONS),))
-        elif current < len(MIGRATIONS):
-            await self._db.execute("UPDATE schema_version SET version = ?", (len(MIGRATIONS),))
         await self._db.commit()
 
     async def close(self):
