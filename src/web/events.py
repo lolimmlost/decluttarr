@@ -11,6 +11,7 @@ class EventType(str, Enum):
     ITEM_REMOVED = "item_removed"
     ITEM_RECOVERED = "item_recovered"
     ITEM_PROTECTED = "item_protected"
+    ITEM_UNPROTECTED = "item_unprotected"
     STRIKE_APPLIED = "strike_applied"
     CONFIG_CHANGED = "config_changed"
 

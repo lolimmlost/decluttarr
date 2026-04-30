@@ -139,6 +139,7 @@ class ActivityRecorder:
             EventType.ITEM_REMOVED: "removed",
             EventType.ITEM_RECOVERED: "recovered",
             EventType.ITEM_PROTECTED: "protected",
+            EventType.ITEM_UNPROTECTED: "unprotected",
             EventType.STRIKE_APPLIED: "strike",
         }
         action = action_map.get(event.event_type)

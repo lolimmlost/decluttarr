@@ -272,8 +272,24 @@ async def api_protect(download_id: str, request: Request):
 @api_router.delete("/protected/{download_id}")
 async def api_unprotect(download_id: str, request: Request):
     db = request.app.state.database
+    event_bus = request.app.state.event_bus
+
+    cursor = await db.db.execute(
+        "SELECT title, arr_name FROM protected_downloads WHERE download_id=?",
+        (download_id,),
+    )
+    row = await cursor.fetchone()
+
     await db.db.execute("DELETE FROM protected_downloads WHERE download_id=?", (download_id,))
     await db.db.commit()
+
+    if row is not None:
+        await event_bus.emit(Event(EventType.ITEM_UNPROTECTED, {
+            "download_id": download_id,
+            "title": row[0],
+            "arr_name": row[1],
+        }))
+
     return {"status": "unprotected", "download_id": download_id}
 
 
