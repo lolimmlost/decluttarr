@@ -747,6 +747,16 @@ ports:
 
 Set `enabled: false` in the `web` config section, or set the environment variable `WEB_ENABLED=false`. When disabled, the event bus uses a no-op implementation with zero overhead.
 
+#### Security
+
+The web UI ships **without built-in authentication**. Anyone who can reach the listen address can read your activity history and mutate runtime config (toggle `test_run`, disable jobs, change `max_strikes`/`min_speed`, trigger cycles, manage protected downloads). Treat it like an internal admin endpoint:
+
+-   Bind it to a trusted interface (`host: "127.0.0.1"`) and reach it via SSH tunnel, **or**
+-   Place it behind a reverse proxy that handles authentication (Caddy, Traefik, nginx + auth_request, Cloudflare Access, Authelia, etc.), **or**
+-   Set `enabled: false` if you don't need it.
+
+Do not expose port 9999 directly to the public internet.
+
 
 ## Disclaimer
 
