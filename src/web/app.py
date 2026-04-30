@@ -77,8 +77,6 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
         finally:
             event_bus.unsubscribe(queue)
 
-    asyncio.create_task(_mark_first_cycle_done())
-
     # Schedule daily cleanup of old activity log entries
     async def _periodic_cleanup():
         while True:
@@ -90,7 +88,12 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
             except Exception as e:  # noqa: BLE001
                 logger.debug(f"Activity log cleanup error: {e}")
 
-    asyncio.create_task(_periodic_cleanup())
+    # asyncio holds only weak refs to tasks, so we keep our own strong refs
+    # on app.state to prevent them from being garbage-collected mid-flight.
+    app.state.background_tasks = [
+        asyncio.create_task(_mark_first_cycle_done()),
+        asyncio.create_task(_periodic_cleanup()),
+    ]
 
     # Run initial cleanup on startup
     try:
