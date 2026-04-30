@@ -297,12 +297,17 @@ async def api_list_protected(request: Request):
 
 # ─── API: Config ───────────────────────────────────────────────
 
-def _validate_config_key(key: str) -> bool:
+def _validate_config_key(key: str, settings) -> bool:
     """Validate that a config override key is allowed."""
     parts = key.split(".")
     if len(parts) == 2 and parts[0] == "general":  # noqa: PLR2004
         return parts[1] in _get_allowed_general_keys()
     if len(parts) == 3 and parts[0] == "jobs":  # noqa: PLR2004
+        # parts[1] must be a real job; otherwise the override is persisted
+        # but silently no-ops on apply, polluting the DB.
+        job = getattr(settings.jobs, parts[1], None)
+        if job is None or not hasattr(job, "enabled"):
+            return False
         return parts[2] in _get_allowed_job_attrs()
     return False
 
@@ -317,6 +322,7 @@ async def api_get_config(request: Request):
 
 @api_router.patch("/config")
 async def api_update_config(request: Request):
+    settings = request.app.state.settings
     config_manager = request.app.state.config_manager
     event_bus = request.app.state.event_bus
     body = await request.json()
@@ -325,7 +331,7 @@ async def api_update_config(request: Request):
     applied = {}
     rejected = {}
     for key, value in updates.items():
-        if _validate_config_key(key):
+        if _validate_config_key(key, settings):
             await config_manager.set_override(key, value)
             applied[key] = value
         else:
