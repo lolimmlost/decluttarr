@@ -72,6 +72,9 @@ async def _fetch_queue(request: Request) -> list:
     settings = request.app.state.settings
     db = request.app.state.database
 
+    cursor = await db.db.execute("SELECT download_id FROM protected_downloads")
+    ui_protected = {row[0] for row in await cursor.fetchall()}
+
     all_queues = []
     for arr in settings.instances:
         try:
@@ -79,10 +82,6 @@ async def _fetch_queue(request: Request) -> list:
             qm = QueueManager(arr, settings)
             queue_items = await qm.get_queue_items("full")
             strikes_data = arr.tracker.defective
-
-            # Get UI-protected download IDs
-            cursor = await db.db.execute("SELECT download_id FROM protected_downloads")
-            ui_protected = {row[0] for row in await cursor.fetchall()}
 
             for item in (queue_items or []):
                 download_id = item.get("downloadId", "")
