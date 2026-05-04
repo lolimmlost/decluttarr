@@ -101,6 +101,18 @@
     padding: 0.3rem 0.5rem;
 }
 
+/* Dashboard layout spacing */
+.dashboard-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-block: 1.5rem;
+}
+
+section {
+    margin-block: 1.5rem;
+}
+
 /* Pagination */
 .pagination {
     display: flex;
