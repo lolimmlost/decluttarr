@@ -90,7 +90,7 @@
     </figure>
 
     <!-- Pagination -->
-    <div style="display: flex; justify-content: space-between; align-items: center;" x-show="totalPages > 1">
+    <div class="pagination" x-show="totalPages > 1">
         <button class="outline" @click="prevPage()" :disabled="page <= 1">Previous</button>
         <span>Page <span x-text="page"></span> of <span x-text="totalPages"></span> (<span x-text="total"></span> total)</span>
         <button class="outline" @click="nextPage()" :disabled="page >= totalPages">Next</button>

@@ -101,6 +101,22 @@
     padding: 0.3rem 0.5rem;
 }
 
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-block: 1rem;
+}
+.pagination button {
+    flex: 0 0 auto;
+}
+.pagination span {
+    flex: 1 1 auto;
+    text-align: center;
+}
+
 /* Save flash animation */
 @keyframes flash-save {
     0%   {
