@@ -69,7 +69,7 @@ web:
   enabled: true # Set to false to disable the web UI
   # host: "0.0.0.0" # optional. Default: 0.0.0.0
   # port: 9999 # optional. Default: 9999
-  # proxy_prefix: "proxy"
+  # proxy_prefix: "decluttarr"     # path prefix behind a reverse proxy (e.g. "decluttarr", or "proxy/9999" for code-server)
 
 download_clients:
   qbittorrent:

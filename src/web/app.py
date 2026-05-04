@@ -48,7 +48,9 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
     host = settings.web.host
     port = settings.web.port
     proxy_prefix = getattr(settings.web, "proxy_prefix", None)
-    root_path = f"/{proxy_prefix}/{port}" if proxy_prefix else ""
+    # proxy_prefix is the literal path prefix the reverse proxy strips before
+    # forwarding to us — e.g. "decluttarr" or "proxy/9999" for code-server.
+    root_path = f"/{proxy_prefix.strip('/')}" if proxy_prefix else ""
 
     # Create app
     app = create_app(settings, event_bus, trigger_event)

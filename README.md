@@ -729,8 +729,17 @@ web:
   enabled: true       # Set to false to disable the web UI entirely
   host: "0.0.0.0"    # Listen address (default: 0.0.0.0)
   port: 9999          # Listen port (default: 9999)
-  proxy_prefix: ""    # Set if running behind a reverse proxy with a path prefix
+  proxy_prefix: ""    # Path prefix when running behind a reverse proxy (see below)
 ```
+
+##### `proxy_prefix`
+
+The literal path prefix that your reverse proxy strips before forwarding to Decluttarr.
+
+- **nginx / Traefik / Caddy:** if the UI lives at `https://example.com/decluttarr`, set `proxy_prefix: "decluttarr"`.
+- **code-server:** the convention is `/proxy/<port>/`, so set `proxy_prefix: "proxy/9999"` (the port is part of the prefix, not appended for you).
+
+Leading and trailing slashes are stripped, so `decluttarr`, `/decluttarr`, and `/decluttarr/` all behave the same.
 
 Environment variable equivalents: `WEB_ENABLED`, `WEB_HOST`, `WEB_PORT`, `PROXY_PREFIX`
 
