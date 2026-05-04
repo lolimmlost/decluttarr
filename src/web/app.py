@@ -41,8 +41,8 @@ async def start_web_server(settings, event_bus: EventBus, trigger_event: asyncio
     """Start the web server as an async task."""
     from src.utils.log_setup import logger
 
-    # Initialize database
-    database = Database()
+    # Initialize database. Precedence: web.db_path (yaml) > DECLUTTARR_DB_PATH env > default.
+    database = Database(getattr(settings.web, "db_path", None))
     await database.init()
 
     host = settings.web.host

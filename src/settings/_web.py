@@ -9,6 +9,7 @@ class Web:
     host: str = "0.0.0.0"
     port: int = 9999
     proxy_prefix: str | None = None
+    db_path: str | None = None
 
     def __init__(self, config):
         web_config = config.get("web", {})
@@ -16,6 +17,7 @@ class Web:
         self.host = web_config.get("host", self.host)
         self.port = web_config.get("port", self.port)
         self.proxy_prefix = web_config.get("proxy_prefix", self.proxy_prefix)
+        self.db_path = web_config.get("db_path", self.db_path)
 
         validate_data_types(self)
         self._remove_none_attributes()

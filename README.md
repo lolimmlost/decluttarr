@@ -730,7 +730,16 @@ web:
   host: "0.0.0.0"    # Listen address (default: 0.0.0.0)
   port: 9999          # Listen port (default: 9999)
   proxy_prefix: ""    # Path prefix when running behind a reverse proxy (see below)
+  db_path: ""         # Optional override for the SQLite database file path
 ```
+
+##### `db_path`
+
+Path to the SQLite database file used for activity history, protected downloads, and runtime config overrides.
+
+- Default: `./data/decluttarr.db`
+- Useful when you want to mount a dedicated volume / PVC for the database, or co-locate it with other persistent state.
+- Precedence: `web.db_path` (YAML) → `DECLUTTARR_DB_PATH` (env var) → default.
 
 ##### `proxy_prefix`
 
@@ -741,7 +750,7 @@ The literal path prefix that your reverse proxy strips before forwarding to Decl
 
 Leading and trailing slashes are stripped, so `decluttarr`, `/decluttarr`, and `/decluttarr/` all behave the same.
 
-Environment variable equivalents: `WEB_ENABLED`, `WEB_HOST`, `WEB_PORT`, `PROXY_PREFIX`
+Environment variable equivalents: `WEB_ENABLED`, `WEB_HOST`, `WEB_PORT`, `PROXY_PREFIX`, `WEB_DB_PATH`
 
 #### Docker
 
