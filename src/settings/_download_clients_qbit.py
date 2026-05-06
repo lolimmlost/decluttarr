@@ -170,7 +170,7 @@ class QbitClient:
 
     async def set_unwanted_folder(self):
         """Set the 'unwanted folder' setting in qBittorrent if needed."""
-        if self.settings.jobs.remove_bad_files:
+        if self.settings.jobs.remove_bad_files.enabled:
             logger.debug(
                 "_download_clients_qBit.py/set_unwanted_folder: Checking preferences and setting use_unwanted_folder if not already set",
             )
