@@ -775,6 +775,22 @@ The web UI ships **without built-in authentication**. Anyone who can reach the l
 
 Do not expose port 9999 directly to the public internet.
 
+#### Content Security Policy
+
+If you serve Decluttarr behind a reverse proxy that injects a Content Security Policy, the web UI works under a strict `script-src` so long as `'unsafe-eval'` is allowed:
+
+```
+default-src 'self';
+script-src  'self' 'unsafe-eval';
+style-src   'self';
+connect-src 'self';
+img-src     'self' data:;
+```
+
+- All frontend dependencies (Pico CSS, HTMX, Alpine.js) are vendored under `/static/vendor/` — **no external CDN allowlist required**.
+- All page-level JavaScript is in external `.js` files under `/static/` — no inline `<script>` blocks, so `'unsafe-inline'` is **not** needed for `script-src`.
+- `'unsafe-eval'` is required because Alpine.js compiles its `x-data` / `x-show` / `x-text` expressions with `new Function(...)`. A follow-up will migrate to the `alpinejs-csp` build to remove this requirement; until then, `'unsafe-eval'` is the one CSP relaxation the UI depends on.
+
 
 ## Disclaimer
 
