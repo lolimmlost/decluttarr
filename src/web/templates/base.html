@@ -5,13 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Decluttarr{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="{{ request.url_for('static', path='favicon.svg') }}">
+    <meta name="root-path" content="{{ request.scope.get('root_path', '') }}">
     <link rel="stylesheet" href="{{ request.url_for('static', path='vendor/pico.min.css') }}">
-    <script>
-        const rootPath = "{{ request.scope.get('root_path', '') }}";
-        document.addEventListener('htmx:configRequest', function(evt) {
-            if (rootPath) evt.detail.path = rootPath + evt.detail.path;
-        });
-    </script>
+    <script src="{{ request.url_for('static', path='base.js') }}"></script>
     <script src="{{ request.url_for('static', path='vendor/htmx.min.js') }}"></script>
     <script src="{{ request.url_for('static', path='vendor/alpine.min.js') }}" defer></script>
     <link rel="stylesheet" href="{{ request.url_for('static', path='style.css') }}">
