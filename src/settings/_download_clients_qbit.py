@@ -1,4 +1,5 @@
 from packaging import version
+from requests.cookies import RequestsCookieJar
 
 from src.settings._constants import ApiEndpoints, MinVersions
 from src.utils.common import extract_json_from_response, make_request, wait_and_exit
@@ -102,11 +103,27 @@ class QbitClient:
             if response.text == "Fails.":
                 _connection_error()
 
-            self.cookie = {"SID": response.cookies["SID"]}
+            self.cookie = self.extract_sid(response.cookies)
         except Exception as e:
             logger.error(f"Error refreshing qBit cookie: {e}")
             self.cookie = {}
             raise QbitError(e) from e
+
+    @staticmethod
+    def extract_sid(cookie_jar: RequestsCookieJar) -> dict[str, str]:
+        """
+        Extract the SID or dynamic QBIT_SID_<WEB_UI_PORT>.
+
+        This supports the legacy 'SID' key and the dynamic port-based
+        naming introduced in qBit 5.2_x.
+        """
+        for cookie in cookie_jar:
+            # Simple, fast, and covers both legacy and new dynamic ports
+            if cookie.name == "SID" or cookie.name.startswith("QBIT_SID_"):
+                return {cookie.name: cookie.value}
+
+        error = "No qBit cookie found"
+        raise QbitError(error)
 
     async def fetch_version(self):
         """Fetch the current qBittorrent version."""
@@ -292,7 +309,9 @@ class QbitClient:
                     logger.debug(
                         "_download_clients_qBit/get_protected_and_private: Checking if torrents are private (only done for old qbit versions)",
                     )
-                    qbit_item_props = await self.get_torrent_properties(qbit_item["hash"])
+                    qbit_item_props = await self.get_torrent_properties(
+                        qbit_item["hash"]
+                    )
 
                     if not qbit_item_props:
                         logger.error(
@@ -376,14 +395,13 @@ class QbitClient:
     async def get_torrent_properties(self, qbit_hash):
         params = {"hash": qbit_hash.lower()}
         response = await make_request(
-                        "get",
-                        self.api_url + "/torrents/properties",
-                        self.settings,
-                        params=params,
-                        cookies=self.cookie,
-                    )
+            "get",
+            self.api_url + "/torrents/properties",
+            self.settings,
+            params=params,
+            cookies=self.cookie,
+        )
         return response.json()
-
 
     async def get_torrent_files(self, download_id):
         # this may not work if the wrong qbit
