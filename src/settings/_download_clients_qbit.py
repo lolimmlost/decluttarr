@@ -115,7 +115,7 @@ class QbitClient:
         Extract the SID or dynamic QBIT_SID_<WEB_UI_PORT>.
 
         This supports the legacy 'SID' key and the dynamic port-based
-        naming introduced in qBit 5.2_x.
+        naming introduced in qBit 5.2.x.
         """
         for cookie in cookie_jar:
             # Simple, fast, and covers both legacy and new dynamic ports
