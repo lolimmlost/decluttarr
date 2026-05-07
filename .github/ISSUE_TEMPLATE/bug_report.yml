@@ -36,6 +36,21 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: os
+    attributes:
+      label: Host OS / architecture
+      description: |
+        Where decluttarr is running. Path-related bugs (especially `detect_deletions`) and qBit cookie issues sometimes behave differently on Windows or ARM.
+      options:
+        - Linux x86_64 (amd64)
+        - Linux ARM (arm64 / armv7)
+        - macOS
+        - Windows
+        - Other (describe under "Steps to reproduce")
+    validations:
+      required: true
+
   - type: input
     id: arr_versions
     attributes:
@@ -51,6 +66,32 @@ body:
       label: Download client + version
       description: qBittorrent / SABnzbd / etc. and version. Write `n/a` if the bug doesn't involve a download client.
       placeholder: "e.g. qBittorrent 5.2.0, or n/a"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: test_run
+    attributes:
+      label: test_run state
+      description: |
+        Removal-related bugs behave very differently with `test_run: true` (no actual removals) vs `false`. Pick the value of `general.test_run` (or `TEST_RUN`) when the bug occurred.
+      options:
+        - "false (production — actual removals)"
+        - "true (test_run mode — no actual removals)"
+        - Reproduces with both
+        - N/A (bug doesn't involve removal logic)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: Reproduction frequency
+      options:
+        - Always (every cycle / every time)
+        - Sometimes (intermittent)
+        - Once / haven't tried again
+        - Unknown
     validations:
       required: true
 
@@ -75,6 +116,8 @@ body:
       label: Debug-level logs
       description: |
         Set `log_level: DEBUG` in your config, reproduce the issue, and paste the relevant log section here. Please include enough context (lines before and after the error) to show what was running.
+
+        **Sanitize before pasting:** scrub any `?apikey=...` query parameters, `Authorization:` headers, session cookies, and arr/qBit URLs you'd rather not share. Decluttarr already redacts most `X-Api-Key` headers but not query-string keys.
       render: shell
     validations:
       required: true
