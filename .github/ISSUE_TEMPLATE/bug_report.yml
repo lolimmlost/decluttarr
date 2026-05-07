@@ -1,0 +1,111 @@
+name: 🐛 Bug Report
+description: Report a reproducible problem with decluttarr
+title: "[Bug] "
+labels: ["Bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. **Please fill in every required field** — incomplete reports take much longer to resolve and may be closed pending more info.
+
+        Before submitting, please confirm:
+        - You've read the [README](https://github.com/ManiMatter/decluttarr#dependencies--hints--faq), especially the **Dependencies & Hints & FAQ** section
+        - You've searched [open and closed issues](https://github.com/ManiMatter/decluttarr/issues?q=is%3Aissue) for the same problem
+        - This is a reproducible bug, not a configuration question (use [Discussions](https://github.com/ManiMatter/decluttarr/discussions) for those)
+
+  - type: input
+    id: version
+    attributes:
+      label: Decluttarr version
+      description: |
+        Image tag (e.g. `latest`, `dev`) or commit hash. Find it in the startup log line `Decluttarr <version>`.
+      placeholder: "e.g. latest, dev, or 51b6a4c"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment method
+      options:
+        - Docker Compose with config.yaml
+        - Docker Compose with environment variables
+        - docker run
+        - Local Python (main.py)
+        - Other (describe under "Steps to reproduce")
+    validations:
+      required: true
+
+  - type: input
+    id: arr_versions
+    attributes:
+      label: "*arr instance versions"
+      description: Versions of any Sonarr / Radarr / Lidarr / Readarr / Whisparr instances involved in the bug.
+      placeholder: "e.g. Sonarr 4.0.10, Radarr 5.18.4"
+    validations:
+      required: true
+
+  - type: input
+    id: download_client_version
+    attributes:
+      label: Download client + version
+      description: qBittorrent / SABnzbd / etc. and version. Write `n/a` if the bug doesn't involve a download client.
+      placeholder: "e.g. qBittorrent 5.2.0, or n/a"
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Sanitized config
+      description: |
+        Your `config.yaml` (or env-var equivalents) with **API keys, passwords, and other secrets removed or redacted**. The form will render this as a code block automatically.
+      render: yaml
+      placeholder: |
+        general:
+          log_level: DEBUG
+          test_run: true
+        # ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug-level logs
+      description: |
+        Set `log_level: DEBUG` in your config, reproduce the issue, and paste the relevant log section here. Please include enough context (lines before and after the error) to show what was running.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start decluttarr with the config above
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, related issues, what you've already tried, hardware/OS details if relevant, etc.
