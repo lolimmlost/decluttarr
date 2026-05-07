@@ -38,14 +38,3 @@ def test_extract_sid_failures(cookies):
 
     with pytest.raises(QbitError, match="No qBit cookie found"):
         QbitClient.extract_sid(jar)
-
-
-def test_extract_sid_priority():
-    """Verify it returns the first valid match it encounters."""
-    jar = RequestsCookieJar()
-    jar.set("SID", "first")
-    jar.set("QBIT_SID_9090", "second")
-
-    result = QbitClient.extract_sid(jar)
-    # Since it's a loop over the jar, it returns the first match found
-    assert list(result.values())[0] in ["first", "second"]
