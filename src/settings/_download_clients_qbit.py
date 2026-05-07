@@ -395,13 +395,14 @@ class QbitClient:
     async def get_torrent_properties(self, qbit_hash):
         params = {"hash": qbit_hash.lower()}
         response = await make_request(
-            "get",
-            self.api_url + "/torrents/properties",
-            self.settings,
-            params=params,
-            cookies=self.cookie,
-        )
+                        "get",
+                        self.api_url + "/torrents/properties",
+                        self.settings,
+                        params=params,
+                        cookies=self.cookie,
+                    )
         return response.json()
+
 
     async def get_torrent_files(self, download_id):
         # this may not work if the wrong qbit
