@@ -10,8 +10,8 @@ from src.settings._download_clients_qbit import QbitClient, QbitError
         # Legacy format
         ("SID", "abc", {"SID": "abc"}),
         # New dynamic port format (qBit 5.2+)
-        ("QBIT_SID_8080", "xyz", {"QBIT_SID_8080": "xyz"}),
-        ("QBIT_SID_12345", "token123", {"QBIT_SID_12345": "token123"}),
+        ("QBT_SID_8080", "xyz", {"QBT_SID_8080": "xyz"}),
+        ("QBT_SID_12345", "token123", {"QBT_SID_12345": "token123"}),
     ],
 )
 def test_extract_sid_success(cookie_name, cookie_value, expected):
