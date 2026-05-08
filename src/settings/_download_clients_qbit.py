@@ -112,14 +112,14 @@ class QbitClient:
     @staticmethod
     def extract_sid(cookie_jar: RequestsCookieJar) -> dict[str, str]:
         """
-        Extract the SID or dynamic QBIT_SID_<WEB_UI_PORT>.
+        Extract the SID or dynamic QBT_SID_<WEB_UI_PORT>.
 
         This supports the legacy 'SID' key and the dynamic port-based
         naming introduced in qBit 5.2.x.
         """
         for cookie in cookie_jar:
             # Simple, fast, and covers both legacy and new dynamic ports
-            if cookie.name == "SID" or cookie.name.startswith("QBIT_SID_"):
+            if cookie.name == "SID" or cookie.name.startswith("QBT_SID_"):
                 return {cookie.name: cookie.value}
 
         error = "No qBit cookie found"
