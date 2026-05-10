@@ -18,7 +18,7 @@ body:
     attributes:
       label: Decluttarr version
       description: |
-        Image tag (e.g. `latest`, `dev`) or commit hash. Find it in the startup log line `Decluttarr <version>`.
+        The Docker image tag you pulled (typically `latest` or `dev`), or for local Python users the short commit hash from `git rev-parse --short HEAD`.
       placeholder: "e.g. latest, dev, or 51b6a4c"
     validations:
       required: true
