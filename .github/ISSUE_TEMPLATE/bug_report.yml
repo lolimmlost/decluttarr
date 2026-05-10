@@ -18,7 +18,7 @@ body:
     attributes:
       label: Decluttarr version
       description: |
-        The Docker image tag you pulled (typically `latest` or `dev`), or for local Python users the short commit hash from `git rev-parse --short HEAD`.
+        The Docker image tag you pulled (typically `latest` or `dev`) or — for local Python users — the short commit hash from `git rev-parse --short HEAD`. Also visible in the `🛠️  Decluttarr - Settings 🛠️` startup banner under `image_tag` / `short_commit_id` (which you'll be pasting in the logs field below).
       placeholder: "e.g. latest, dev, or 51b6a4c"
     validations:
       required: true
@@ -96,28 +96,19 @@ body:
       required: true
 
   - type: textarea
-    id: config
-    attributes:
-      label: Sanitized config
-      description: |
-        Your `config.yaml` (or env-var equivalents) with **API keys, passwords, and other secrets removed or redacted**. The form will render this as a code block automatically.
-      render: yaml
-      placeholder: |
-        general:
-          log_level: DEBUG
-          test_run: true
-        # ...
-    validations:
-      required: true
-
-  - type: textarea
     id: logs
     attributes:
-      label: Debug-level logs
+      label: Decluttarr startup banner + debug logs
       description: |
-        Set `log_level: DEBUG` in your config, reproduce the issue, and paste the relevant log section here. Please include enough context (lines before and after the error) to show what was running.
+        Please follow these three steps to produce a useful log dump:
 
-        **Sanitize before pasting:** scrub any `?apikey=...` query parameters, `Authorization:` headers, session cookies, and arr/qBit URLs you'd rather not share. Decluttarr already redacts most `X-Api-Key` headers but not query-string keys.
+        1. **Disable jobs not related to your issue** in your config — keeps the logs focused and short
+        2. **Set `log_level: DEBUG`** (or `VERBOSE` if DEBUG is too noisy)
+        3. **Restart decluttarr and paste everything from the `🛠️  Decluttarr - Settings 🛠️` startup banner through the cycle that exhibits the bug**
+
+        The startup banner already contains `image_tag` / `short_commit_id` and the entire active config (general, jobs, instances, download clients) with API keys masked as `*****`.
+
+        **Still sanitize before pasting:** scrub any `?apikey=...` query parameters, `Authorization:` headers, session cookies, and any arr/qBit URLs you'd rather not share. Decluttarr already redacts `X-Api-Key` headers but not query-string keys.
       render: shell
     validations:
       required: true
