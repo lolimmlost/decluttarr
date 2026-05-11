@@ -16,10 +16,13 @@ body:
   - type: input
     id: version
     attributes:
-      label: Decluttarr version
+      label: Decluttarr commit hash
       description: |
-        The Docker image tag you pulled (typically `latest` or `dev`) or — for local Python users — the short commit hash from `git rev-parse --short HEAD`. Also visible in the `🛠️  Decluttarr - Settings 🛠️` startup banner under `image_tag` / `short_commit_id` (which you'll be pasting in the logs field below).
-      placeholder: "e.g. latest, dev, or 51b6a4c"
+        The **short commit hash** of the build you're running. `latest` / `dev` tags move too quickly to be useful for reproduction, so please give us the specific commit.
+
+        - **Docker users:** grab it from the `short_commit_id` line in the `🛠️  Decluttarr - Settings 🛠️` startup banner (you'll be pasting the full banner in the logs field below)
+        - **Local Python users:** run `git rev-parse --short HEAD`
+      placeholder: "e.g. 51b6a4c"
     validations:
       required: true
 
