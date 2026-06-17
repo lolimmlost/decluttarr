@@ -241,3 +241,21 @@ class QueueManager:
                     filtered_items.append(item)
                     break
         return filtered_items
+
+    @staticmethod
+    def filter_missing_size(queue: list[dict]) -> list[dict]:
+        """
+        Return queued items whose size is not yet known (no metadata fetched).
+
+        Unlike qBittorrent, clients such as Transmission or Deluge do not surface a
+        "downloading metadata" message in the *arr queue, so a torrent stuck fetching
+        metadata cannot be matched by message. Such items are reported by the *arr as
+        status "queued" with size 0. This client-agnostic check catches them (see #57).
+
+        The "size" key must be present so that incomplete items are not matched.
+        """
+        return [
+            item
+            for item in queue
+            if item.get("status") == "queued" and "size" in item and not item["size"]
+        ]

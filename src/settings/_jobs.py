@@ -14,6 +14,7 @@ class JobParams:
     max_concurrent_searches: int
     min_days_between_searches: int
     target_tags: list
+    detect_via_missing_size: bool = False
 
     def __init__(
         self,
@@ -25,6 +26,7 @@ class JobParams:
         max_concurrent_searches=None,
         min_days_between_searches=None,
         target_tags=None,
+        detect_via_missing_size=None,
     ):
         self.enabled = enabled
         self.keep_archives = keep_archives
@@ -34,6 +36,7 @@ class JobParams:
         self.max_concurrent_searches = max_concurrent_searches
         self.min_days_between_searches = min_days_between_searches
         self.target_tags = target_tags
+        self.detect_via_missing_size = detect_via_missing_size
 
         # Remove attributes that are None to keep the object clean
         self._remove_none_attributes()
@@ -86,6 +89,7 @@ class Jobs:
         )
         self.remove_metadata_missing = JobParams(
             max_strikes=self.job_defaults.max_strikes,
+            detect_via_missing_size=False,
         )
         self.remove_missing_files = JobParams()
         self.remove_orphans = JobParams()
