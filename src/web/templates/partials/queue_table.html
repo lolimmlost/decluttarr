@@ -19,15 +19,18 @@
                 <td>
                     <span class="badge" data-arr-type="{{ item.arr_type }}">{{ item.arr_name }}</span>
                 </td>
-                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
-                    title="{{ item.title }}">
-                    {{ item.title }}
+                <td class="queue-title">
+                    <span class="truncate" title="{{ item.title }}">{{ item.title }}</span>
                 </td>
-                <td>
+                <td class="queue-status">
                     <span class="badge status-{{ item.status | lower }}">{{ item.status }}</span>
-                    {% for msg in item.status_messages %}
-                        <br><small style="color: var(--pico-secondary);">{{ msg }}</small>
-                    {% endfor %}
+                    {% if item.status_messages %}
+                    <div class="status-messages">
+                        {% for msg in item.status_messages %}
+                        <small>{{ msg }}</small>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </td>
                 <td><small>{{ item.download_client }}</small></td>
                 <td>

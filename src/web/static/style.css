@@ -101,6 +101,31 @@
     padding: 0.3rem 0.5rem;
 }
 
+/* Queue table: truncate long titles with an ellipsis.
+   The truncation lives on a block-level inner element because text-overflow
+   is unreliable on a <td> itself under the default table-layout: auto. */
+.queue-title .truncate {
+    display: block;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Queue table: cap the status message list so a long list (e.g. many missing
+   episodes) scrolls within the cell instead of blowing up the row height. */
+.queue-status .status-messages {
+    max-height: 6rem;
+    overflow-y: auto;
+    margin-top: 0.25rem;
+}
+
+.queue-status .status-messages small {
+    display: block;
+    color: var(--pico-secondary);
+    overflow-wrap: anywhere;
+}
+
 /* Dashboard layout spacing */
 .dashboard-actions {
     display: flex;
