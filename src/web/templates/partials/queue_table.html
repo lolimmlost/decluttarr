@@ -26,9 +26,15 @@
                     <span class="badge status-{{ item.status | lower }}">{{ item.status }}</span>
                     {% if item.status_messages %}
                     <div class="status-messages">
-                        {% for msg in item.status_messages %}
-                        <small>{{ msg }}</small>
-                        {% endfor %}
+                        <small>{{ item.status_messages[0] }}</small>
+                        {% if item.status_messages | length > 1 %}
+                        <details>
+                            <summary><small>+{{ item.status_messages | length - 1 }} more</small></summary>
+                            {% for msg in item.status_messages[1:] %}
+                            <small>{{ msg }}</small>
+                            {% endfor %}
+                        </details>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </td>

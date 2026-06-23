@@ -112,11 +112,7 @@
     white-space: nowrap;
 }
 
-/* Queue table: cap the status message list so a long list (e.g. many missing
-   episodes) scrolls within the cell instead of blowing up the row height. */
 .queue-status .status-messages {
-    max-height: 6rem;
-    overflow-y: auto;
     margin-top: 0.25rem;
 }
 
@@ -124,6 +120,30 @@
     display: block;
     color: var(--pico-secondary);
     overflow-wrap: anywhere;
+}
+
+.queue-status .status-messages details {
+    margin: 0;
+}
+
+.queue-status .status-messages details summary {
+    cursor: pointer;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.queue-status .status-messages details summary small {
+    color: var(--pico-primary);
+}
+
+.queue-status .status-messages details[open] > summary small {
+    margin-bottom: 0.25rem;
+}
+
+.queue-status .status-messages details[open] {
+    max-height: 12rem;
+    overflow-y: auto;
 }
 
 /* Dashboard layout spacing */
