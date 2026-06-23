@@ -23,20 +23,10 @@
                     <span class="truncate" title="{{ item.title }}">{{ item.title }}</span>
                 </td>
                 <td class="queue-status">
-                    <span class="badge status-{{ item.status | lower }}">{{ item.status }}</span>
-                    {% if item.status_messages %}
-                    <div class="status-messages">
-                        <small>{{ item.status_messages[0] }}</small>
-                        {% if item.status_messages | length > 1 %}
-                        <details>
-                            <summary><small>+{{ item.status_messages | length - 1 }} more</small></summary>
-                            {% for msg in item.status_messages[1:] %}
-                            <small>{{ msg }}</small>
-                            {% endfor %}
-                        </details>
-                        {% endif %}
-                    </div>
-                    {% endif %}
+                    <span class="badge status-{{ item.status | lower }}"
+                          {% if item.status_messages %}title="{{ item.status_messages | join('\n') }}"{% endif %}>
+                        {{ item.status }}
+                    </span>
                 </td>
                 <td><small>{{ item.download_client }}</small></td>
                 <td>

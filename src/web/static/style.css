@@ -101,49 +101,13 @@
     padding: 0.3rem 0.5rem;
 }
 
-/* Queue table: truncate long titles with an ellipsis.
-   The truncation lives on a block-level inner element because text-overflow
-   is unreliable on a <td> itself under the default table-layout: auto. */
 .queue-title .truncate {
-    display: block;
-    max-width: 300px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.queue-status .status-messages {
-    margin-top: 0.25rem;
-}
-
-.queue-status .status-messages small {
-    display: block;
-    color: var(--pico-secondary);
+    max-width: 300px;
     overflow-wrap: anywhere;
-}
-
-.queue-status .status-messages details {
-    margin: 0;
-}
-
-.queue-status .status-messages details summary {
-    cursor: pointer;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.queue-status .status-messages details summary small {
-    color: var(--pico-primary);
-}
-
-.queue-status .status-messages details[open] > summary small {
-    margin-bottom: 0.25rem;
-}
-
-.queue-status .status-messages details[open] {
-    max-height: 12rem;
-    overflow-y: auto;
 }
 
 /* Dashboard layout spacing */
