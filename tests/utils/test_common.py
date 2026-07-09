@@ -45,3 +45,14 @@ async def test_make_request_allows_explicit_timeout_override():
 
     assert to_thread.await_count == 1
     assert to_thread.await_args.kwargs["timeout"] == 7
+
+
+def test_sanitize_kwargs_redacts_authorization_header():
+    """The Bearer token must never survive into logs."""
+    from src.utils.common import sanitize_kwargs
+
+    data = {"headers": {"Authorization": "Bearer qbt_supersecrettoken"}}
+    result = sanitize_kwargs(data)
+
+    assert result["headers"]["Authorization"] == "[**redacted**]"
+    assert "qbt_supersecrettoken" not in str(result)
