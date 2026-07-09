@@ -15,7 +15,9 @@ async def test_make_request_uses_general_request_timeout_by_default():
     mock_response = MagicMock()
     mock_response.raise_for_status = MagicMock()
 
-    with patch("src.utils.common.asyncio.to_thread", new_callable=AsyncMock) as to_thread:
+    with patch(
+        "src.utils.common.asyncio.to_thread", new_callable=AsyncMock
+    ) as to_thread:
         to_thread.return_value = mock_response
 
         await make_request("get", "http://example.com/api", settings)
@@ -34,7 +36,9 @@ async def test_make_request_allows_explicit_timeout_override():
     mock_response = MagicMock()
     mock_response.raise_for_status = MagicMock()
 
-    with patch("src.utils.common.asyncio.to_thread", new_callable=AsyncMock) as to_thread:
+    with patch(
+        "src.utils.common.asyncio.to_thread", new_callable=AsyncMock
+    ) as to_thread:
         to_thread.return_value = mock_response
 
         await make_request("get", "http://example.com/api", settings, timeout=7)

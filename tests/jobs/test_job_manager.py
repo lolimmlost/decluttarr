@@ -40,10 +40,14 @@ async def test_run_download_client_jobs_handles_per_job_request_errors():
     failing_job = MagicMock()
     failing_job.job.enabled = True
     failing_job.job_name = "remove_done_seeding"
-    failing_job.run = AsyncMock(side_effect=requests.exceptions.ReadTimeout("timed out"))
+    failing_job.run = AsyncMock(
+        side_effect=requests.exceptions.ReadTimeout("timed out")
+    )
 
     with (
-        patch.object(manager, "_download_clients_connected", AsyncMock(return_value=True)),
+        patch.object(
+            manager, "_download_clients_connected", AsyncMock(return_value=True)
+        ),
         patch.object(
             manager,
             "_get_download_client_jobs_for_client",

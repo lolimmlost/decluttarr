@@ -53,7 +53,9 @@ async def make_request(
     ignore_test_run = kwargs.pop("ignore_test_run", False)
     request_timeout = timeout
     if request_timeout is None:
-        request_timeout = getattr(getattr(settings, "general", None), "request_timeout", 15)
+        request_timeout = getattr(
+            getattr(settings, "general", None), "request_timeout", 15
+        )
 
     if settings.general.test_run and not ignore_test_run:
         if method.lower() in ("put", "post", "delete"):
