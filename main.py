@@ -8,7 +8,7 @@ from src.deletion_handler.deletion_handler import WatcherManager
 from src.job_manager import JobManager
 from src.settings.settings import Settings
 from src.utils.log_setup import logger
-from src.utils.startup import launch_steps
+from src.utils.startup import launch_steps, retry_degraded_instances
 
 settings = Settings()
 job_manager = JobManager(settings)
@@ -53,13 +53,18 @@ async def main():
     await launch_steps(settings)
 
     if settings.jobs.detect_deletions.enabled:
-        await WatcherManager(settings).setup()
+        await watch_manager.setup()
     # Start Cleaning
     while True:
         logger.info("-" * 50)
 
+        # Give degraded instances a chance to rejoin before this cycle's jobs
+        await retry_degraded_instances(settings, watch_manager)
+
         # Refresh qBit Cookies (SABnzbd doesn't need cookie refresh)
         for qbit in settings.download_clients.qbittorrent:
+            if not qbit.ready:
+                continue
             try:
                 await qbit.refresh_cookie()
             except Exception as err:  # noqa: BLE001
@@ -70,6 +75,8 @@ async def main():
 
         # Run script for each instance
         for arr in settings.instances:
+            if not arr.ready:  # skip was already logged by retry_degraded_instances
+                continue
             await job_manager.run_jobs(arr)
             logger.verbose("")
 

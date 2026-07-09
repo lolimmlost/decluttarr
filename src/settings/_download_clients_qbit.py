@@ -2,12 +2,19 @@ from packaging import version
 from requests.cookies import RequestsCookieJar
 
 from src.settings._constants import ApiEndpoints, MinVersions
-from src.utils.common import extract_json_from_response, make_request, wait_and_exit
+from src.utils.common import (
+    extract_json_from_response,
+    is_definitive_setup_error,
+    make_request,
+)
 from src.utils.log_setup import logger
 
 
 class QbitError(Exception):
-    pass
+    def __init__(self, message, tip="", definitive=False):
+        super().__init__(message)
+        self.tip = tip
+        self.definitive = definitive
 
 
 class QbitClients(list):
@@ -39,6 +46,10 @@ class QbitClient:
     cookie: dict[str, str] = None
     version: str = None
     bandwidth_usage: int = 0
+    ready: bool = False
+    failure_kind: str = None  # None | "transient" | "definitive"
+    last_error: str = None
+    setup_tip: str = ""
 
     def __init__(
         self,
@@ -160,7 +171,7 @@ class QbitClient:
                 f"Please update qBittorrent to at least version {min_version}. Current version: {self.version}",
             )
             error = f"qBittorrent version {self.version} is too old. Please update."
-            raise QbitError(error)
+            raise QbitError(error, definitive=True)
         if version.parse(self.version) < version.parse("5.0.0"):
             logger.info(
                 "[Tip!] Consider upgrading to qBittorrent v5.0.0 or newer to reduce network overhead.",
@@ -228,7 +239,7 @@ class QbitClient:
                 )
 
     async def check_qbit_reachability(self):
-        """Check if the qBittorrent URL is reachable."""
+        """Check if the qBittorrent URL is reachable (and the credentials work)."""
         try:
             logger.debug(
                 "_download_clients_qBit.py/check_qbit_reachability: Checking if qbit is reachable",
@@ -239,7 +250,7 @@ class QbitClient:
                 "password": getattr(self, "password", ""),
             }
             headers = {"content-type": "application/x-www-form-urlencoded"}
-            await make_request(
+            response = await make_request(
                 "post",
                 endpoint,
                 self.settings,
@@ -249,11 +260,21 @@ class QbitClient:
                 log_error=False,
                 ignore_test_run=True,
             )
-
         except Exception as e:  # noqa: BLE001
             tip = "💡 Tip: Did you specify the URL (and username/password if required) correctly?"
-            logger.error(f"-- | qBittorrent\n❗️ {e}\n{tip}\n")
-            wait_and_exit()
+            if str(e) != self.last_error:  # Only report new failure modes in full
+                logger.error(f"-- | qBittorrent\n❗️ {e}\n{tip}\n")
+            raise QbitError(e, tip=tip) from e
+
+        # Bad credentials: qBit answers HTTP 200 with the body "Fails." Treat this
+        # as a definitive config error so we don't retry-loop every cycle and get
+        # the source IP banned by qBittorrent's failed-login protection.
+        if getattr(response, "text", None) == "Fails.":
+            tip = "💡 Tip: Check the qBittorrent username/password."
+            error = "qBittorrent login failed (incorrect username/password)."
+            if error != self.last_error:
+                logger.error(f"-- | qBittorrent\n❗️ {error}\n{tip}\n")
+            raise QbitError(error, tip=tip, definitive=True)
 
     async def check_connected(self):
         """Check if the qBittorrent is connected to internet."""
@@ -283,26 +304,38 @@ class QbitClient:
         return True
 
     async def setup(self):
-        """Perform the qBittorrent setup by calling relevant managers."""
-        # Check reachabilty
-        await self.check_qbit_reachability()
-
-        # Refresh the qBittorrent cookie first
-        await self.refresh_cookie()
-
+        """Perform the qBittorrent setup; degrade instead of exiting on failure."""
         try:
+            await self.check_qbit_reachability()
+
+            # Refresh the qBittorrent cookie first
+            await self.refresh_cookie()
+
             # Fetch version and validate it
             await self.fetch_version()
             await self.validate_version()
-            logger.info(f"OK | qBittorrent ({self.base_url})")
-        except QbitError as e:
-            logger.error(f"qBittorrent version check failed: {e}")
-            wait_and_exit()  # Exit if version check fails
 
-        # Continue with other setup tasks regardless of version check result
-        await self.create_required_tags()
-        await self.set_unwanted_folder()
-        await self.warn_no_bandwidth_limit_set()
+            await self.create_required_tags()
+            await self.set_unwanted_folder()
+            await self.warn_no_bandwidth_limit_set()
+
+            logger.info(f"OK | qBittorrent ({self.base_url})")
+            self.ready = True
+            self.failure_kind = None
+            self.last_error = None
+            self.setup_tip = ""
+        except Exception as e:  # noqa: BLE001
+            if not isinstance(e, QbitError) and str(e) != self.last_error:
+                logger.error(
+                    f"Unhandled error during qBittorrent setup: {e}", exc_info=True
+                )
+            self.ready = False
+            self.failure_kind = (
+                "definitive" if is_definitive_setup_error(e) else "transient"
+            )
+            self.last_error = str(e)
+            self.setup_tip = getattr(e, "tip", "")
+        return self.ready
 
     async def get_protected_and_private(self):
         """Fetch torrents from qBittorrent and checks for protected and private status."""
@@ -428,7 +461,6 @@ class QbitClient:
             cookies=self.cookie,
         )
         return response.json()
-
 
     async def get_torrent_files(self, download_id):
         # this may not work if the wrong qbit
