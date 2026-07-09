@@ -2,6 +2,7 @@ general:
   log_level: INFO
   test_run: true
   timer: 10
+  # request_timeout: 15 # Optional: timeout for all HTTP/API calls in seconds
   # ignored_download_clients: ["emulerr"]
   # ssl_verification: false # Optional: Defaults to true
   # private_tracker_handling: "obsolete_tag" # remove, skip, obsolete_tag. Optional. Default: remove
