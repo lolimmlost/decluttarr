@@ -47,8 +47,10 @@ class QbitClient:
         username: str = None,
         password: str = None,
         name: str = None,
+        timeout: int | None = None,
     ):
         self.settings = settings
+        self._timeout = timeout
         if not base_url:
             logger.error("Skipping qBittorrent client entry: 'base_url' is required.")
             error = "qBittorrent client must have a 'base_url'."
@@ -67,6 +69,13 @@ class QbitClient:
             self.name = "qBittorrent"
 
         self._remove_none_attributes()
+
+    @property
+    def timeout(self):
+        instance_timeout = getattr(self, "_timeout", None)
+        if instance_timeout is not None:
+            return instance_timeout
+        return getattr(getattr(self.settings, "general", None), "request_timeout", 15)
 
     def _remove_none_attributes(self):
         """Remove attributes that are None to keep the object clean."""
@@ -95,6 +104,7 @@ class QbitClient:
                 "post",
                 endpoint,
                 self.settings,
+                timeout=self.timeout,
                 data=data,
                 headers=headers,
                 ignore_test_run=True,
@@ -133,6 +143,7 @@ class QbitClient:
             "get",
             endpoint,
             self.settings,
+            timeout=self.timeout,
             cookies=self.cookie,
         )
         self.version = response.text[1:]  # Remove the '_v' prefix
@@ -161,7 +172,7 @@ class QbitClient:
             "_download_clients_qBit.py/create_tag: Checking if tag '{tag}' exists (and creating it if not)",
         )
         url = f"{self.api_url}/torrents/tags"
-        response = await make_request("get", url, self.settings, cookies=self.cookie)
+        response = await make_request("get", url, self.settings, timeout=self.timeout, cookies=self.cookie)
         current_tags = response.json()
 
         if tag not in current_tags:
@@ -171,6 +182,7 @@ class QbitClient:
                 "post",
                 self.api_url + "/torrents/createTags",
                 self.settings,
+                timeout=self.timeout,
                 data=data,
                 cookies=self.cookie,
             )
@@ -196,6 +208,7 @@ class QbitClient:
                 "get",
                 endpoint,
                 self.settings,
+                timeout=self.timeout,
                 cookies=self.cookie,
             )
             qbit_settings = response.json()
@@ -209,6 +222,7 @@ class QbitClient:
                     "post",
                     self.api_url + "/app/setPreferences",
                     self.settings,
+                    timeout=self.timeout,
                     data=data,
                     cookies=self.cookie,
                 )
@@ -229,6 +243,7 @@ class QbitClient:
                 "post",
                 endpoint,
                 self.settings,
+                timeout=self.timeout,
                 data=data,
                 headers=headers,
                 log_error=False,
@@ -251,6 +266,7 @@ class QbitClient:
                     "get",
                     self.api_url + "/sync/maindata",
                     self.settings,
+                    timeout=self.timeout,
                     cookies=self.cookie,
                 )
             ).json()
@@ -353,6 +369,7 @@ class QbitClient:
             "post",
             self.api_url + "/torrents/addTags",
             self.settings,
+            timeout=self.timeout,
             data=data,
             cookies=self.cookie,
         )
@@ -376,6 +393,7 @@ class QbitClient:
             method="get",
             endpoint=f"{self.api_url}/torrents/info",
             settings=self.settings,
+            timeout=self.timeout,
             params=None,  # Retrieve all torrents
             cookies=self.cookie,
         )
@@ -395,12 +413,13 @@ class QbitClient:
     async def get_torrent_properties(self, qbit_hash):
         params = {"hash": qbit_hash.lower()}
         response = await make_request(
-                        "get",
-                        self.api_url + "/torrents/properties",
-                        self.settings,
-                        params=params,
-                        cookies=self.cookie,
-                    )
+            "get",
+            self.api_url + "/torrents/properties",
+            self.settings,
+            timeout=self.timeout,
+            params=params,
+            cookies=self.cookie,
+        )
         return response.json()
 
 
@@ -411,6 +430,7 @@ class QbitClient:
             method="get",
             endpoint=self.api_url + "/torrents/files",
             settings=self.settings,
+            timeout=self.timeout,
             params={"hash": download_id.lower()},
             cookies=self.cookie,
         )
@@ -429,6 +449,7 @@ class QbitClient:
             "post",
             self.api_url + "/torrents/filePrio",
             self.settings,
+            timeout=self.timeout,
             data=data,
             cookies=self.cookie,
         )
@@ -440,6 +461,7 @@ class QbitClient:
             method="get",
             endpoint=self.api_url + "/transfer/info",
             settings=self.settings,
+            timeout=self.timeout,
             cookies=self.cookie,
         )
         records = extract_json_from_response(response)
@@ -476,6 +498,7 @@ class QbitClient:
             "post",
             f"{self.api_url}/torrents/delete",
             self.settings,
+            timeout=self.timeout,
             data=data,
             cookies=self.cookie,
         )

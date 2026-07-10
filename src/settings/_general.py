@@ -13,6 +13,7 @@ class General:
     timer: float = 10.0
     request_timeout: float = 15.0
     ssl_verification: bool = True
+    request_timeout: int = 15
     ignored_download_clients: list = []
     private_tracker_handling: str = "remove"
     public_tracker_handling: str = "remove"
@@ -30,6 +31,7 @@ class General:
         self.ssl_verification = general_config.get(
             "ssl_verification", self.ssl_verification
         )
+        self.request_timeout = general_config.get("request_timeout", self.request_timeout)
         self.ignored_download_clients = general_config.get(
             "ignored_download_clients", self.ignored_download_clients
         )
