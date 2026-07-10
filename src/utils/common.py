@@ -100,6 +100,18 @@ def wait_and_exit(seconds=30):
     sys.exit()
 
 
+def is_definitive_setup_error(exc):
+    """Definitive = a configuration error that cannot heal without user action."""
+    for candidate in (exc, exc.__cause__):
+        if getattr(candidate, "definitive", False):
+            return True
+        if isinstance(candidate, requests.exceptions.HTTPError):
+            response = getattr(candidate, "response", None)
+            if response is not None and response.status_code in (401, 403):
+                return True
+    return False
+
+
 def extract_json_from_response(response, key: str | None = None):
     try:
         data = response.json()

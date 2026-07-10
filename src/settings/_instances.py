@@ -13,7 +13,12 @@ from src.settings._constants import (
     RefreshItemCommand,
     RefreshItemKey,
 )
-from src.utils.common import extract_json_from_response, make_request, wait_and_exit
+from src.utils.common import (
+    extract_json_from_response,
+    is_definitive_setup_error,
+    make_request,
+    wait_and_exit,
+)
 from src.utils.log_setup import logger
 
 
@@ -42,6 +47,8 @@ class Tracker:
         private_downloads = []
 
         for qbit in settings.download_clients.qbittorrent:
+            if not qbit.ready:
+                continue
             protected, private = await qbit.get_protected_and_private()
             protected_downloads.extend(protected)
             private_downloads.extend(private)
@@ -51,7 +58,10 @@ class Tracker:
 
 
 class ArrError(Exception):
-    pass
+    def __init__(self, message, tip="", definitive=False):
+        super().__init__(message)
+        self.tip = tip
+        self.definitive = definitive
 
 
 class ArrInstances(list):
@@ -135,6 +145,10 @@ class ArrInstance:
 
     version: str = None
     name: str = None
+    ready: bool = False
+    failure_kind: str = None  # None | "transient" | "definitive"
+    last_error: str = None
+    setup_tip: str = ""
 
     def __init__(self, settings, arr_type: str, base_url: str, api_key: str, timeout: int | None = None):
         if not base_url:
@@ -186,7 +200,8 @@ class ArrInstance:
                 "> Details: https://github.com/ManiMatter/decluttarr/issues/132)",
             )
             error = "Not English"
-            raise ArrError(error)
+            tip = f"💡 Tip: Set the UI language to English in {self.name} (under Settings/UI)"
+            raise ArrError(error, tip=tip, definitive=True)
 
     def _check_min_version(self, status):
         """Check if ARR instance meets minimum version requirements."""
@@ -243,11 +258,12 @@ class ArrInstance:
             else:
                 tip = ""
 
-            logger.error(f"-- | {self.arr_type} ({self.base_url})\n❗️ {e}\n{tip}\n")
-            raise ArrError(e) from e
+            if str(e) != self.last_error:  # Only report new failure modes in full
+                logger.error(f"-- | {self.arr_type} ({self.base_url})\n❗️ {e}\n{tip}\n")
+            raise ArrError(e, tip=tip) from e
 
     async def setup(self):
-        """Check on specific ARR instance."""
+        """Check on specific ARR instance; degrade instead of exiting on failure."""
         try:
             status = await self._check_reachability()
             self.name = status.get("instanceName", self.arr_type)
@@ -260,10 +276,20 @@ class ArrInstance:
             logger.debug(f"Current version of {self.name}: {self.version}")
             await self._check_matching_decluttarr_download_clients()
 
+            self.ready = True
+            self.failure_kind = None
+            self.last_error = None
+            self.setup_tip = ""
         except Exception as e:  # noqa: BLE001
-            if not isinstance(e, ArrError):
+            if not isinstance(e, ArrError) and str(e) != self.last_error:
                 logger.error(f"Unhandled error: {e}", exc_info=True)
-            wait_and_exit()
+            self.ready = False
+            self.failure_kind = (
+                "definitive" if is_definitive_setup_error(e) else "transient"
+            )
+            self.last_error = str(e)
+            self.setup_tip = getattr(e, "tip", "")
+        return self.ready
 
     async def fetch_arr_download_clients(self) -> list[dict[str, object]]:
         """Fetch the list of download clients from the *arr API."""

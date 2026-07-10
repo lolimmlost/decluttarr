@@ -44,6 +44,8 @@ class RemovalHandler:
             f"Job '{self.job_name}' triggered obsolete-tagging: {affected_download['title']}"
         )
         for qbit in self.settings.download_clients.qbittorrent:
+            if not qbit.ready:
+                continue
             await qbit.set_tag(
                 tags=[self.settings.general.obsolete_tag], hashes=[download_id]
             )
@@ -55,12 +57,12 @@ class RemovalHandler:
         download_client_name = affected_download["downloadClient"]
         _, download_client_type = (
             self.settings.download_clients.get_download_client_by_name(
-                download_client_name
+                download_client_name, ready_only=True
             )
         )
 
         if download_client_type != "qbittorrent":
-            return "remove"  # handling is only implemented for qbit
+            return "remove"  # handling is only implemented for qbit (and only if ready)
 
         if len(self.settings.download_clients.qbittorrent) == 0:
             return "remove"  # qbit not configured, thus can't tag

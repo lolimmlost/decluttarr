@@ -56,6 +56,9 @@ class JobManager:
             )
 
             for client in download_clients:
+                if not client.ready:
+                    continue
+
                 # Get jobs for this client
                 download_client_jobs = self._get_download_client_jobs_for_client(
                     client,
@@ -150,6 +153,8 @@ class JobManager:
 
     async def _check_client_connection_status(self, clients):
         for client in clients:
+            if not client.ready:  # never-set-up client must not veto or be polled
+                continue
             logger.debug(
                 f"job_manager.py/_check_client_connection_status: Checking if {client.name} is connected",
             )

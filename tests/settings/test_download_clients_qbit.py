@@ -1,6 +1,6 @@
 import pytest
-
 from requests.cookies import RequestsCookieJar
+
 from src.settings._download_clients_qbit import QbitClient, QbitError
 
 
@@ -38,3 +38,76 @@ def test_extract_sid_failures(cookies):
 
     with pytest.raises(QbitError, match="No qBit cookie found"):
         QbitClient.extract_sid(jar)
+
+
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import requests
+
+
+@pytest.mark.asyncio
+async def test_setup_reachability_timeout_marks_transient():
+    settings = MagicMock()
+    client = QbitClient(settings, base_url="http://qbit:8080")
+
+    with patch(
+        "src.settings._download_clients_qbit.make_request",
+        new_callable=AsyncMock,
+        side_effect=requests.exceptions.ReadTimeout("Read timed out."),
+    ):
+        result = await client.setup()
+
+    assert result is False
+    assert client.ready is False
+    assert client.failure_kind == "transient"
+    assert "Read timed out." in client.last_error
+
+
+@pytest.mark.asyncio
+async def test_setup_old_version_marks_definitive():
+    settings = MagicMock()
+    settings.min_versions.qbittorrent = "4.3.0"
+    client = QbitClient(settings, base_url="http://qbit:8080")
+    client.check_qbit_reachability = AsyncMock()
+    client.refresh_cookie = AsyncMock()
+    client.fetch_version = AsyncMock()
+    client.version = "3.0.0"
+
+    await client.setup()
+
+    assert client.ready is False
+    assert client.failure_kind == "definitive"
+
+
+@pytest.mark.asyncio
+async def test_setup_cookie_refresh_failure_marks_transient():
+    settings = MagicMock()
+    client = QbitClient(settings, base_url="http://qbit:8080")
+    client.check_qbit_reachability = AsyncMock()
+    client.refresh_cookie = AsyncMock(
+        side_effect=QbitError(ConnectionError("Login failed."))
+    )
+
+    await client.setup()
+
+    assert client.ready is False
+    assert client.failure_kind == "transient"
+
+
+@pytest.mark.asyncio
+async def test_setup_bad_password_marks_definitive():
+    """Wrong qBit password (HTTP 200 + 'Fails.') is definitive, not retried forever."""
+    settings = MagicMock()
+    client = QbitClient(
+        settings, base_url="http://qbit:8080", username="u", password="wrong"
+    )
+    resp = MagicMock(text="Fails.")
+    with patch(
+        "src.settings._download_clients_qbit.make_request",
+        new_callable=AsyncMock,
+        return_value=resp,
+    ):
+        await client.setup()
+
+    assert client.ready is False
+    assert client.failure_kind == "definitive"
