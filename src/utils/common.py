@@ -26,7 +26,14 @@ def sanitize_kwargs(data):
         for key, value in data.items():
             if (
                 key.lower()
-                in {"username", "password", "x-api-key", "apikey", "cookies"}
+                in {
+                    "username",
+                    "password",
+                    "x-api-key",
+                    "apikey",
+                    "cookies",
+                    "authorization",
+                }
                 and value
             ):
                 redacted[key] = "[**redacted**]"

@@ -71,8 +71,9 @@ instances:
 download_clients:
   qbittorrent:
     - base_url: "http://qbittorrent:8080" # You can use decluttarr without qbit (not all features available, see readme).
-      # username: xxxx # (optional -> if not provided, assuming not needed)
-      # password: xxxx # (optional -> if not provided, assuming not needed)
+      # api_key: "qbt_xxxx" # (recommended -> requires qBittorrent 5.2.0+; generate under Web UI settings. Takes precedence over username/password.)
+      # username: xxxx # (legacy -> for qBittorrent < 5.2; ignored if api_key is set)
+      # password: xxxx # (legacy -> for qBittorrent < 5.2; ignored if api_key is set)
       # name: "qBittorrent" # (optional -> if not provided, assuming "qBittorrent". Must correspond with what is specified in your *arr as download client name)
       # timeout: 30 # (optional -> overrides general timeout for this instance)
   # sabnzbd:
