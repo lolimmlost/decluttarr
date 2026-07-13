@@ -561,11 +561,13 @@ This is the interesting section. It defines which job you want decluttarr to run
 -   Steers whether downloads stuck obtaining metadata are removed from the queue
 -   Blocklisted: Yes
 -   Type: Boolean or Dict
--   Permissible Values: True, False or max_strikes (int)
+-   Permissible Values: True, False or max_strikes (int), detect_via_missing_size (bool)
 -   Is Mandatory: No (Defaults to False)
 -   Note:
       - With max_strikes you can define how many times this torrent can be caught before being removed
       - Instead of configuring it here, you may also configure it as a default across all jobs or use the built-in defaults (see further above under "max_strikes")
+      - By default, this check relies on the "qBittorrent is downloading metadata" message that qBittorrent surfaces in the \*arr queue. Other download clients (e.g. Transmission, Deluge) do not surface such a message, so a torrent stuck fetching metadata stays undetected (see [#57](https://github.com/ManiMatter/decluttarr/issues/57)).
+      - Set `detect_via_missing_size: true` to additionally flag, regardless of download client, queued items whose size is not yet known (size 0), which is the client-agnostic signature of "no metadata yet". This is debounced by max_strikes. Defaults to False to keep existing (qBittorrent) behavior unchanged.
 
 #### REMOVE_MISSING_FILES
 
