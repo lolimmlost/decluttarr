@@ -47,6 +47,10 @@ class JobParams:
             if getattr(self, attr) is None:
                 delattr(self, attr)
 
+    def __bool__(self):
+        """Allow direct truthiness checks to reflect whether this job is enabled."""
+        return bool(getattr(self, "enabled", False))
+
 
 class JobDefaults:
     """Represents default job settings."""

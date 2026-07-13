@@ -20,6 +20,7 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
     - [LOG_LEVEL](#log_level)
     - [TEST_RUN](#test_run)
     - [TIMER](#timer)
+    - [REQUEST_TIMEOUT](#request_timeout)
     - [SSL_VERIFICATION](#ssl_verification)
     - [IGNORE_DOWNLOAD_CLIENTS](#ignore_download_clients)
     - [PRIVATE_TRACKER_HANDLING / PUBLIC_TRACKER_HANDLING](#private_tracker_handling--public_tracker_handling)
@@ -193,6 +194,7 @@ services:
       LOG_LEVEL: INFO
       TEST_RUN: True
       TIMER: 10
+      # REQUEST_TIMEOUT: 15
       # IGNORED_DOWNLOAD_CLIENTS: >
       #   - emulerr
       # SSL_VERIFICATION: true
@@ -286,8 +288,9 @@ services:
       # --- Download Clients ---
       QBITTORRENT: >
         - base_url: "http://qbittorrent:8080"
-          # username: "$QBIT_USERNAME" # (optional -> if not provided, assuming not needed)
-          # password: "$QBIT_PASSWORD" # (optional -> if not provided, assuming not needed)
+          # api_key: "$QBIT_API_KEY" # (recommended -> requires qBittorrent 5.2.0+; takes precedence over username/password)
+          # username: "$QBIT_USERNAME" # (legacy -> for qBittorrent < 5.2; ignored if api_key is set)
+          # password: "$QBIT_PASSWORD" # (legacy -> for qBittorrent < 5.2; ignored if api_key is set)
           name: "qBittorrent 1" # (optional -> if not provided, assuming "qBittorrent". Must correspond with what is specified in your *arr as download client name)
         - base_url: "http://qbittorrent:8080"
           name: "qBittorrent 2" 
@@ -398,6 +401,13 @@ Configures the general behavior of the application (across all features)
 -   Type: Integer
 -   Unit: Minutes
 -   Is Mandatory: No (Defaults to 10)
+
+#### REQUEST_TIMEOUT
+
+-   Timeout used for HTTP/API requests to *arr and download clients
+-   Type: Integer or Float
+-   Unit: Seconds
+-   Is Mandatory: No (Defaults to 15)
 
 #### SSL_VERIFICATION
 
@@ -697,8 +707,9 @@ Supported download clients: **qBittorrent** and **SABnzbd**.
 -   Type: List of qbit instances
 -   Keys per instance
     - base_url: URL under which the qbit can be reached (mandatory)
-    - username: Optional - only needed if your qbit requires authentication (which you may not need if you have configured qbit in a way that it disables it for local connections)
-    - password: Optional - see above
+    - api_key: Recommended - qBittorrent API key (requires qBittorrent 5.2.0 or newer; generate it under Web UI settings). Authenticates without storing credentials, and takes precedence over username/password if both are set.
+    - username: Legacy - only for qBittorrent < 5.2, or if your qbit requires authentication (which you may not need if qbit disables it for local connections). Ignored when api_key is set.
+    - password: Legacy - see above
     - name: Optional. Needs to correspond with the name that you have set up in your Arr instance. Defaults to "qBittorrent"
 
 #### SABNZBD

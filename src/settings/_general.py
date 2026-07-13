@@ -11,7 +11,9 @@ class General:
     log_level: str = "INFO"
     test_run: bool = False
     timer: float = 10.0
+    request_timeout: float = 15.0
     ssl_verification: bool = True
+    request_timeout: int = 15
     ignored_download_clients: list = []
     private_tracker_handling: str = "remove"
     public_tracker_handling: str = "remove"
@@ -23,9 +25,13 @@ class General:
         self.log_level = general_config.get("log_level", self.log_level.upper())
         self.test_run = general_config.get("test_run", self.test_run)
         self.timer = general_config.get("timer", self.timer)
+        self.request_timeout = general_config.get(
+            "request_timeout", self.request_timeout
+        )
         self.ssl_verification = general_config.get(
             "ssl_verification", self.ssl_verification
         )
+        self.request_timeout = general_config.get("request_timeout", self.request_timeout)
         self.ignored_download_clients = general_config.get(
             "ignored_download_clients", self.ignored_download_clients
         )
