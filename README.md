@@ -1,7 +1,14 @@
 _Like this app? Thanks for giving it a_ ⭐️
 
 # **Decluttarr**
-**Decluttar V2 was released on Nov 1st, 2025 with _breaking config file changes_.**
+_Couple of quick hints:_
+
+**1. Are you looking at the right ReadMe?**
+Check that the ReadMe version corresponds to the branch you are using (i.e. ```latest``` or ```dev```). Default view on this GitHub repo is ```dev``` branch, but you are most likely using ```latest``` (as per below [instructions](#getting-started)). Thus make sure you change the branch of the ReadMe if that‘s the case:
+- [**LATEST** ReadMe](https://github.com/ManiMatter/decluttarr/blob/latest/README.md)
+- [**DEV** ReadMe](https://github.com/ManiMatter/decluttarr/blob/dev/README.md)
+
+**2. Decluttar V2 was released on Nov 1st, 2025 with _breaking config file changes_.**
 
 Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
 
