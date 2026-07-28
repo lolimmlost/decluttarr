@@ -9,7 +9,11 @@ body:
         Thanks for taking the time to file a bug. **Please fill in every required field** — incomplete reports take much longer to resolve and may be closed pending more info.
 
         Before submitting, please confirm:
-        - You've read the [README](https://github.com/ManiMatter/decluttarr#dependencies--hints--faq), especially the **Dependencies & Hints & FAQ** section
+        - You've read the ReadMe, especially the **Dependencies & Hints & FAQ** section. 
+          Make sure you read the correct ReadMe version:
+
+          - [**LATEST** ReadMe](https://github.com/ManiMatter/decluttarr/blob/latest/README.md) if you use ```latest``` code
+          - [**DEV** ReadMe](https://github.com/ManiMatter/decluttarr/blob/dev/README.md) if you use ```dev``` code
         - You've searched [open and closed issues](https://github.com/ManiMatter/decluttarr/issues?q=is%3Aissue) for the same problem
         - This is a reproducible bug, not a configuration question (use [Discussions](https://github.com/ManiMatter/decluttarr/discussions) for those)
 
