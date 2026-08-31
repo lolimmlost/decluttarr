@@ -10,11 +10,11 @@
         <div class="grid">
             <label>
                 Search
-                <input type="text" x-model="filters.search" @input.debounce.300ms="loadActivity" placeholder="Search titles...">
+                <input type="text" :value="filters.search" data-filter="search" @input.debounce.300ms="setFilter" placeholder="Search titles...">
             </label>
             <label>
                 Action
-                <select x-model="filters.action" @change="loadActivity">
+                <select :value="filters.action" data-filter="action" @change="setFilter">
                     <option value="">All</option>
                     <option value="removed">Removed</option>
                     <option value="flagged">Flagged</option>
@@ -26,7 +26,7 @@
             </label>
             <label>
                 Arr Instance
-                <select x-model="filters.arr" @change="loadActivity">
+                <select :value="filters.arr" data-filter="arr" @change="setFilter">
                     <option value="">All</option>
                     {% for inst in settings.instances %}
                     <option value="{{ inst.name }}">{{ inst.name }}</option>
@@ -37,11 +37,11 @@
         <div class="grid">
             <label>
                 From
-                <input type="date" x-model="filters.date_from" @change="loadActivity">
+                <input type="date" :value="filters.date_from" data-filter="date_from" @change="setFilter">
             </label>
             <label>
                 To
-                <input type="date" x-model="filters.date_to" @change="loadActivity">
+                <input type="date" :value="filters.date_to" data-filter="date_to" @change="setFilter">
             </label>
         </div>
     </details>

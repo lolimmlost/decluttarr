@@ -22,13 +22,13 @@
         <div class="grid">
             <label>
                 Test Run
-                <input type="checkbox" role="switch" x-model="config.general.test_run"
+                <input type="checkbox" role="switch" :checked="config.general.test_run"
                        data-key="general.test_run" @change="saveField">
                 <small x-show="ov.general.test_run" class="override-badge">overridden</small>
             </label>
             <label>
                 Timer (minutes)
-                <input type="number" x-model.number="config.general.timer" min="1" step="1"
+                <input type="number" :value="config.general.timer" min="1" step="1"
                        data-key="general.timer" @change="saveField">
                 <small x-show="ov.general.timer" class="override-badge">overridden</small>
             </label>
@@ -37,7 +37,7 @@
         <div class="grid">
             <label>
                 Log Level
-                <select x-model="config.general.log_level" data-key="general.log_level" @change="saveField">
+                <select :value="config.general.log_level" data-key="general.log_level" @change="saveField">
                     <option>DEBUG</option>
                     <option>VERBOSE</option>
                     <option>INFO</option>
@@ -47,7 +47,7 @@
             </label>
             <label>
                 SSL Verification
-                <input type="checkbox" role="switch" x-model="config.general.ssl_verification"
+                <input type="checkbox" role="switch" :checked="config.general.ssl_verification"
                        data-key="general.ssl_verification" @change="saveField">
             </label>
         </div>
@@ -55,7 +55,7 @@
         <div class="grid">
             <label>
                 Private Tracker Handling
-                <select x-model="config.general.private_tracker_handling"
+                <select :value="config.general.private_tracker_handling"
                         data-key="general.private_tracker_handling" @change="saveField">
                     <option value="remove">Remove</option>
                     <option value="skip">Skip</option>
@@ -64,7 +64,7 @@
             </label>
             <label>
                 Public Tracker Handling
-                <select x-model="config.general.public_tracker_handling"
+                <select :value="config.general.public_tracker_handling"
                         data-key="general.public_tracker_handling" @change="saveField">
                     <option value="remove">Remove</option>
                     <option value="skip">Skip</option>
@@ -76,12 +76,12 @@
         <div class="grid">
             <label>
                 Obsolete Tag
-                <input type="text" x-model="config.general.obsolete_tag"
+                <input type="text" :value="config.general.obsolete_tag"
                        data-key="general.obsolete_tag" @change="saveField">
             </label>
             <label>
                 Protected Tag
-                <input type="text" x-model="config.general.protected_tag"
+                <input type="text" :value="config.general.protected_tag"
                        data-key="general.protected_tag" @change="saveField">
             </label>
         </div>
@@ -101,20 +101,20 @@
                     <div class="grid">
                         <label>
                             Enabled
-                            <input type="checkbox" role="switch" x-model="jobConfig.enabled"
+                            <input type="checkbox" role="switch" :checked="jobConfig.enabled"
                                    :data-job="jobName" data-attr="enabled" @change="saveJobField">
                         </label>
                         <template x-if="jobConfig.hasMaxStrikes">
                             <label>
                                 Max Strikes
-                                <input type="number" x-model.number="jobConfig.max_strikes" min="1"
+                                <input type="number" :value="jobConfig.max_strikes" min="1"
                                        :data-job="jobName" data-attr="max_strikes" @change="saveJobField">
                             </label>
                         </template>
                         <template x-if="jobConfig.hasMinSpeed">
                             <label>
                                 Min Speed (KB/s)
-                                <input type="number" x-model.number="jobConfig.min_speed" min="0"
+                                <input type="number" :value="jobConfig.min_speed" min="0"
                                        :data-job="jobName" data-attr="min_speed" @change="saveJobField">
                             </label>
                         </template>

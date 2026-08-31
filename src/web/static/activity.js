@@ -19,6 +19,14 @@ document.addEventListener('alpine:init', () => {
         init() {
             this.loadActivity();
         },
+        // Inputs bind one-way with :value (the CSP build can't do x-model's
+        // write-back on nested paths), so update the filter state here and
+        // reload. data-filter names which filter the control drives.
+        setFilter(e) {
+            this.filters[e.target.dataset.filter] = e.target.value;
+            this.page = 1;
+            this.loadActivity();
+        },
         // Getters replace the comparison/negation expressions the CSP build
         // cannot evaluate inline (e.g. x-show="!loading").
         get notLoading() { return !this.loading; },

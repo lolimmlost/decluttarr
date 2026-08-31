@@ -57,16 +57,27 @@ document.addEventListener('alpine:init', () => {
                 if (el.type === 'number') return el.value === '' ? null : Number(el.value);
                 return el.value;
             },
+            // Write a value into a dotted path on an object. Used to keep the
+            // config model in sync on save: inputs bind one-way with :value /
+            // :checked (the CSP build can't do x-model's write-back on nested
+            // paths), so the handlers own the write instead.
+            setPath(obj, path, value) {
+                const parts = path.split('.');
+                let cur = obj;
+                for (let i = 0; i < parts.length - 1; i++) cur = cur[parts[i]];
+                cur[parts[parts.length - 1]] = value;
+            },
             saveField(e) {
-                this.saveOverride(e.target.dataset.key, this.fieldValue(e.target), e);
+                const key = e.target.dataset.key;
+                const value = this.fieldValue(e.target);
+                this.setPath(this.config, key, value);
+                this.saveOverride(key, value, e);
             },
             saveJobField(e) {
                 const { job, attr } = e.target.dataset;
                 const value = this.fieldValue(e.target);
-                if (attr === 'enabled') {
-                    this.config.jobs[job].enabled = value;
-                    this.applyEnabledLabel(this.config.jobs[job]);
-                }
+                this.config.jobs[job][attr] = value;
+                if (attr === 'enabled') this.applyEnabledLabel(this.config.jobs[job]);
                 this.saveOverride(`jobs.${job}.${attr}`, value, e);
             },
             flashEl(event, cls) {
