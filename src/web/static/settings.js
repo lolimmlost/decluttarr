@@ -11,10 +11,30 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('settingsPage', () => {
         const dataEl = document.getElementById('settings-init-data');
+        const config = JSON.parse(dataEl.dataset.config);
+        const overrides = JSON.parse(dataEl.dataset.overrides);
+        // Nested mirror of the flat dotted override keys so the template can
+        // test x-show="ov.general.timer" as a plain dot path. Every general key
+        // is defaulted to false first: the CSP evaluator warns on any path that
+        // resolves to undefined, so the badge leaves must always be defined.
+        const buildOv = (cfg, ovr) => {
+            const ov = { general: {} };
+            for (const k in cfg.general) ov.general[k] = false;
+            for (const key in ovr) {
+                const parts = key.split('.');
+                let cur = ov;
+                for (let i = 0; i < parts.length - 1; i++) {
+                    cur[parts[i]] = cur[parts[i]] || {};
+                    cur = cur[parts[i]];
+                }
+                cur[parts[parts.length - 1]] = true;
+            }
+            return ov;
+        };
         return {
-            config: JSON.parse(dataEl.dataset.config),
-            overrides: JSON.parse(dataEl.dataset.overrides),
-            ov: { general: {} },
+            config,
+            overrides,
+            ov: buildOv(config, overrides),
             message: '',
             messageError: false,
             init() {
@@ -37,20 +57,8 @@ document.addEventListener('alpine:init', () => {
                 job.enabledLabel = job.enabled ? 'enabled' : 'disabled';
                 job.enabledClass = job.enabled ? 'status-enabled' : 'status-disabled';
             },
-            // Build a nested mirror of the flat dotted override keys so the
-            // template can test x-show="ov.general.timer" (a plain dot path).
             rebuildOv() {
-                const ov = { general: {} };
-                for (const key in this.overrides) {
-                    const parts = key.split('.');
-                    let cur = ov;
-                    for (let i = 0; i < parts.length - 1; i++) {
-                        cur[parts[i]] = cur[parts[i]] || {};
-                        cur = cur[parts[i]];
-                    }
-                    cur[parts[parts.length - 1]] = true;
-                }
-                this.ov = ov;
+                this.ov = buildOv(this.config, this.overrides);
             },
             fieldValue(el) {
                 if (el.type === 'checkbox') return el.checked;
