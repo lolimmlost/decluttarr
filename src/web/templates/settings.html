@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Settings - Decluttarr{% endblock %}
 {% block content %}
+<!-- tojson escapes < > & ' but not " — so it is safe only inside a
+     single-quoted attribute. Double quotes here truncate the JSON at its
+     first inner quote and break JSON.parse in settings.js. -->
 <div id="settings-init-data"
-     data-config="{{ config | tojson }}"
-     data-overrides="{{ overrides | tojson }}"
+     data-config='{{ config | tojson }}'
+     data-overrides='{{ overrides | tojson }}'
      hidden></div>
 <div x-data="settingsPage">
     <h2>Settings</h2>
