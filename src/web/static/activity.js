@@ -1,7 +1,9 @@
-// Alpine factory for the activity log page. Owns the filter state, paginated
-// fetch against /api/activity, and timestamp formatting.
-function activityLog() {
-    return {
+// Activity log page component. Registered via Alpine.data() for the CSP build
+// of Alpine (no eval evaluator), so templates reference only bare paths. Every
+// per-row derived value (formatted time, badge classes, strike display) is
+// precomputed here in decorate() rather than as an inline template expression.
+document.addEventListener('alpine:init', () => {
+    Alpine.data('activityLog', () => ({
         items: [],
         loading: true,
         page: 1,
@@ -13,6 +15,27 @@ function activityLog() {
             arr: '',
             date_from: '',
             date_to: '',
+        },
+        init() {
+            this.loadActivity();
+        },
+        // Getters replace the comparison/negation expressions the CSP build
+        // cannot evaluate inline (e.g. x-show="!loading").
+        get notLoading() { return !this.loading; },
+        get noItems() { return this.items.length === 0; },
+        get hasPages() { return this.totalPages > 1; },
+        get onFirstPage() { return this.page <= 1; },
+        get onLastPage() { return this.page >= this.totalPages; },
+        decorate(item) {
+            item.timeFormatted = this.formatTime(item.timestamp);
+            item.rowClass =
+                item.action === 'removed' ? 'action-removed'
+                : item.action === 'recovered' ? 'action-recovered'
+                : '';
+            item.actionBadgeClass = 'action-badge-' + item.action;
+            item.hasStrikes = item.strikes !== null;
+            item.strikesDisplay = item.strikes + '/' + (item.max_strikes || '?');
+            return item;
         },
         async loadActivity() {
             this.loading = true;
@@ -26,7 +49,7 @@ function activityLog() {
             try {
                 const res = await fetch(`${rootPath}/api/activity?${params}`);
                 const data = await res.json();
-                this.items = data.items;
+                this.items = data.items.map((item) => this.decorate(item));
                 this.total = data.total;
                 this.totalPages = data.total_pages;
             } catch {
@@ -45,5 +68,5 @@ function activityLog() {
         nextPage() {
             if (this.page < this.totalPages) { this.page++; this.loadActivity(); }
         },
-    };
-}
+    }));
+});

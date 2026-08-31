@@ -13,8 +13,39 @@ from src.web.events import EventBus, EventType
 from src.web.routes import api_router, page_router
 
 
+# Content-Security-Policy for the UI. script-src is strict 'self': all JS is
+# vendored locally (htmx, the CSP build of Alpine) with no inline scripts and no
+# eval, so no 'unsafe-inline'/'unsafe-eval' is needed. style-src allows
+# 'unsafe-inline' for the inline style= attributes and Pico/Alpine style hooks;
+# everything else (fetch, EventSource, images) is same-origin.
+_CSP_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data:",
+        "font-src 'self'",
+        "connect-src 'self'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'self'",
+    ]
+)
+
+
 def create_app(settings, event_bus: EventBus, trigger_event: asyncio.Event = None) -> FastAPI:
     app = FastAPI(title="Decluttarr", docs_url="/api/docs", redoc_url=None)
+
+    @app.middleware("http")
+    async def _security_headers(request, call_next):
+        response = await call_next(request)
+        # Swagger UI (/api/docs) loads its assets from a CDN and uses inline
+        # scripts/styles, so a strict CSP would break it — skip that one page.
+        if "/api/docs" not in request.url.path:
+            response.headers.setdefault("Content-Security-Policy", _CSP_POLICY)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+        return response
 
     # Static files and templates
     web_dir = os.path.dirname(__file__)

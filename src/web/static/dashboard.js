@@ -25,10 +25,12 @@ document.addEventListener('click', function (e) {
     }
 });
 
-// Alpine factory for the dashboard root component. Subscribes to the SSE event
-// stream and refreshes the relevant htmx partials when items change.
-function dashboard() {
-    return {
+// Dashboard root component. Registered via Alpine.data() (not a global factory)
+// so it works with the CSP build of Alpine, which has no eval-based evaluator.
+// Templates therefore reference only bare property/method names — any derived
+// value or event handler lives here in JS.
+document.addEventListener('alpine:init', () => {
+    Alpine.data('dashboard', () => ({
         triggering: false,
         message: '',
         evtSource: null,
@@ -79,5 +81,5 @@ function dashboard() {
             }
             setTimeout(() => this.message = '', 3000);
         },
-    };
-}
+    }));
+});

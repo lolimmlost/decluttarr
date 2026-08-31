@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Dashboard - Decluttarr{% endblock %}
 {% block content %}
-<div x-data="dashboard()" x-init="init()">
+<div x-data="dashboard">
 
     <!-- Status Bar -->
     <div hx-get="/partials/status-bar" hx-trigger="load, every 30s, refresh" hx-swap="innerHTML">
@@ -25,10 +25,10 @@
 
     <!-- Actions -->
     <div class="dashboard-actions">
-        <button class="outline" @click="triggerCycle()" :aria-busy="triggering">
+        <button class="outline" @click="triggerCycle" :aria-busy="triggering">
             Run Now
         </button>
-        <button class="outline secondary" @click="toggleTestRun()">
+        <button class="outline secondary" @click="toggleTestRun">
             Toggle Test Run
         </button>
         <span x-show="message" x-text="message" x-transition style="color: var(--pico-primary);"></span>

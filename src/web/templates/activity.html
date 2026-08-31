@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Activity Log - Decluttarr{% endblock %}
 {% block content %}
-<div x-data="activityLog()" x-init="loadActivity()">
+<div x-data="activityLog">
     <h2>Activity Log</h2>
 
     <!-- Filters -->
@@ -10,11 +10,11 @@
         <div class="grid">
             <label>
                 Search
-                <input type="text" x-model="filters.search" @input.debounce.300ms="loadActivity()" placeholder="Search titles...">
+                <input type="text" x-model="filters.search" @input.debounce.300ms="loadActivity" placeholder="Search titles...">
             </label>
             <label>
                 Action
-                <select x-model="filters.action" @change="loadActivity()">
+                <select x-model="filters.action" @change="loadActivity">
                     <option value="">All</option>
                     <option value="removed">Removed</option>
                     <option value="flagged">Flagged</option>
@@ -26,7 +26,7 @@
             </label>
             <label>
                 Arr Instance
-                <select x-model="filters.arr" @change="loadActivity()">
+                <select x-model="filters.arr" @change="loadActivity">
                     <option value="">All</option>
                     {% for inst in settings.instances %}
                     <option value="{{ inst.name }}">{{ inst.name }}</option>
@@ -37,11 +37,11 @@
         <div class="grid">
             <label>
                 From
-                <input type="date" x-model="filters.date_from" @change="loadActivity()">
+                <input type="date" x-model="filters.date_from" @change="loadActivity">
             </label>
             <label>
                 To
-                <input type="date" x-model="filters.date_to" @change="loadActivity()">
+                <input type="date" x-model="filters.date_to" @change="loadActivity">
             </label>
         </div>
     </details>
@@ -49,7 +49,7 @@
     <!-- Results -->
     <div x-show="loading" aria-busy="true">Loading...</div>
 
-    <figure x-show="!loading">
+    <figure x-show="notLoading">
         <table role="grid">
             <thead>
                 <tr>
@@ -64,25 +64,25 @@
             </thead>
             <tbody>
                 <template x-for="item in items" :key="item.id">
-                    <tr :class="{'action-removed': item.action === 'removed', 'action-recovered': item.action === 'recovered'}">
-                        <td x-text="formatTime(item.timestamp)" style="white-space: nowrap;"></td>
+                    <tr :class="item.rowClass">
+                        <td x-text="item.timeFormatted" style="white-space: nowrap;"></td>
                         <td>
                             <span class="badge" :data-arr-type="item.arr_type" x-text="item.arr_name"></span>
                         </td>
                         <td><code x-text="item.job_name"></code></td>
                         <td>
-                            <span class="badge" :class="'action-badge-' + item.action" x-text="item.action"></span>
+                            <span class="badge" :class="item.actionBadgeClass" x-text="item.action"></span>
                         </td>
                         <td x-text="item.title" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></td>
                         <td>
-                            <span x-show="item.strikes !== null" x-text="item.strikes + '/' + (item.max_strikes || '?')"></span>
+                            <span x-show="item.hasStrikes" x-text="item.strikesDisplay"></span>
                         </td>
                         <td>
                             <span x-show="item.test_run" class="badge test-badge">TEST</span>
                         </td>
                     </tr>
                 </template>
-                <tr x-show="items.length === 0">
+                <tr x-show="noItems">
                     <td colspan="7" style="text-align: center;">No activity found</td>
                 </tr>
             </tbody>
@@ -90,10 +90,10 @@
     </figure>
 
     <!-- Pagination -->
-    <div class="pagination" x-show="totalPages > 1">
-        <button class="outline" @click="prevPage()" :disabled="page <= 1">Previous</button>
+    <div class="pagination" x-show="hasPages">
+        <button class="outline" @click="prevPage" :disabled="onFirstPage">Previous</button>
         <span>Page <span x-text="page"></span> of <span x-text="totalPages"></span> (<span x-text="total"></span> total)</span>
-        <button class="outline" @click="nextPage()" :disabled="page >= totalPages">Next</button>
+        <button class="outline" @click="nextPage" :disabled="onLastPage">Next</button>
     </div>
 </div>
 {% endblock %}

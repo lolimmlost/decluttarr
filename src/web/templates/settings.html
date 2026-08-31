@@ -5,11 +5,11 @@
      data-config="{{ config | tojson }}"
      data-overrides="{{ overrides | tojson }}"
      hidden></div>
-<div x-data="settingsPage()" x-init="init()">
+<div x-data="settingsPage">
     <h2>Settings</h2>
 
     <span x-show="message" x-text="message" x-transition
-          :style="messageError ? 'color: var(--pico-del-color)' : 'color: var(--pico-ins-color)'"
+          :style="messageStyle"
           style="display: block; margin-bottom: 1rem;"></span>
 
     <!-- General Settings -->
@@ -20,21 +20,21 @@
             <label>
                 Test Run
                 <input type="checkbox" role="switch" x-model="config.general.test_run"
-                       @change="saveGeneral('test_run', config.general.test_run, $event)">
-                <small x-show="isOverridden('general.test_run')" class="override-badge">overridden</small>
+                       data-key="general.test_run" @change="saveField">
+                <small x-show="ov.general.test_run" class="override-badge">overridden</small>
             </label>
             <label>
                 Timer (minutes)
                 <input type="number" x-model.number="config.general.timer" min="1" step="1"
-                       @change="saveGeneral('timer', config.general.timer, $event)">
-                <small x-show="isOverridden('general.timer')" class="override-badge">overridden</small>
+                       data-key="general.timer" @change="saveField">
+                <small x-show="ov.general.timer" class="override-badge">overridden</small>
             </label>
         </div>
 
         <div class="grid">
             <label>
                 Log Level
-                <select x-model="config.general.log_level" @change="saveGeneral('log_level', config.general.log_level, $event)">
+                <select x-model="config.general.log_level" data-key="general.log_level" @change="saveField">
                     <option>DEBUG</option>
                     <option>VERBOSE</option>
                     <option>INFO</option>
@@ -45,7 +45,7 @@
             <label>
                 SSL Verification
                 <input type="checkbox" role="switch" x-model="config.general.ssl_verification"
-                       @change="saveGeneral('ssl_verification', config.general.ssl_verification, $event)">
+                       data-key="general.ssl_verification" @change="saveField">
             </label>
         </div>
 
@@ -53,7 +53,7 @@
             <label>
                 Private Tracker Handling
                 <select x-model="config.general.private_tracker_handling"
-                        @change="saveGeneral('private_tracker_handling', config.general.private_tracker_handling, $event)">
+                        data-key="general.private_tracker_handling" @change="saveField">
                     <option value="remove">Remove</option>
                     <option value="skip">Skip</option>
                     <option value="obsolete_tag">Obsolete Tag</option>
@@ -62,7 +62,7 @@
             <label>
                 Public Tracker Handling
                 <select x-model="config.general.public_tracker_handling"
-                        @change="saveGeneral('public_tracker_handling', config.general.public_tracker_handling, $event)">
+                        data-key="general.public_tracker_handling" @change="saveField">
                     <option value="remove">Remove</option>
                     <option value="skip">Skip</option>
                     <option value="obsolete_tag">Obsolete Tag</option>
@@ -74,12 +74,12 @@
             <label>
                 Obsolete Tag
                 <input type="text" x-model="config.general.obsolete_tag"
-                       @change="saveGeneral('obsolete_tag', config.general.obsolete_tag, $event)">
+                       data-key="general.obsolete_tag" @change="saveField">
             </label>
             <label>
                 Protected Tag
                 <input type="text" x-model="config.general.protected_tag"
-                       @change="saveGeneral('protected_tag', config.general.protected_tag, $event)">
+                       data-key="general.protected_tag" @change="saveField">
             </label>
         </div>
     </article>
@@ -92,28 +92,27 @@
             <details>
                 <summary>
                     <span x-text="jobName"></span>
-                    <span x-show="jobConfig.enabled" style="color: var(--pico-ins-color); margin-left: 0.5rem;">enabled</span>
-                    <span x-show="!jobConfig.enabled" style="color: var(--pico-secondary); margin-left: 0.5rem;">disabled</span>
+                    <span x-text="jobConfig.enabledLabel" :class="jobConfig.enabledClass"></span>
                 </summary>
                 <div style="padding: 0.5rem;">
                     <div class="grid">
                         <label>
                             Enabled
                             <input type="checkbox" role="switch" x-model="jobConfig.enabled"
-                                   @change="saveJob(jobName, 'enabled', jobConfig.enabled, $event)">
+                                   :data-job="jobName" data-attr="enabled" @change="saveJobField">
                         </label>
-                        <template x-if="'max_strikes' in jobConfig">
+                        <template x-if="jobConfig.hasMaxStrikes">
                             <label>
                                 Max Strikes
                                 <input type="number" x-model.number="jobConfig.max_strikes" min="1"
-                                       @change="saveJob(jobName, 'max_strikes', jobConfig.max_strikes, $event)">
+                                       :data-job="jobName" data-attr="max_strikes" @change="saveJobField">
                             </label>
                         </template>
-                        <template x-if="'min_speed' in jobConfig">
+                        <template x-if="jobConfig.hasMinSpeed">
                             <label>
                                 Min Speed (KB/s)
                                 <input type="number" x-model.number="jobConfig.min_speed" min="0"
-                                       @change="saveJob(jobName, 'min_speed', jobConfig.min_speed, $event)">
+                                       :data-job="jobName" data-attr="min_speed" @change="saveJobField">
                             </label>
                         </template>
                     </div>
@@ -135,7 +134,7 @@
     </article>
 
     <!-- Reset -->
-    <button class="outline secondary" @click="resetOverrides()">Reset All to YAML Defaults</button>
+    <button class="outline secondary" @click="resetOverrides">Reset All to YAML Defaults</button>
 </div>
 {% endblock %}
 
