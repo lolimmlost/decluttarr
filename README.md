@@ -1,7 +1,14 @@
 _Like this app? Thanks for giving it a_ ⭐️
 
 # **Decluttarr**
-**Decluttar V2 was released on Nov 1st, 2025 with _breaking config file changes_.**
+_Couple of quick hints:_
+
+**1. Are you looking at the right ReadMe?**
+Check that the ReadMe version corresponds to the branch you are using (i.e. ```latest``` or ```dev```). Default view on this GitHub repo is ```dev``` branch, but you are most likely using ```latest``` (as per below [instructions](#getting-started)). Thus make sure you change the branch of the ReadMe if that‘s the case:
+- [**LATEST** ReadMe](https://github.com/ManiMatter/decluttarr/blob/latest/README.md)
+- [**DEV** ReadMe](https://github.com/ManiMatter/decluttarr/blob/dev/README.md)
+
+**2. Decluttar V2 was released on Nov 1st, 2025 with _breaking config file changes_.**
 
 Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
 
@@ -20,6 +27,7 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
     - [LOG_LEVEL](#log_level)
     - [TEST_RUN](#test_run)
     - [TIMER](#timer)
+    - [REQUEST_TIMEOUT](#request_timeout)
     - [SSL_VERIFICATION](#ssl_verification)
     - [IGNORE_DOWNLOAD_CLIENTS](#ignore_download_clients)
     - [PRIVATE_TRACKER_HANDLING / PUBLIC_TRACKER_HANDLING](#private_tracker_handling--public_tracker_handling)
@@ -194,6 +202,7 @@ services:
       LOG_LEVEL: INFO
       TEST_RUN: True
       TIMER: 10
+      # REQUEST_TIMEOUT: 15
       # IGNORED_DOWNLOAD_CLIENTS: >
       #   - emulerr
       # SSL_VERIFICATION: true
@@ -287,8 +296,9 @@ services:
       # --- Download Clients ---
       QBITTORRENT: >
         - base_url: "http://qbittorrent:8080"
-          # username: "$QBIT_USERNAME" # (optional -> if not provided, assuming not needed)
-          # password: "$QBIT_PASSWORD" # (optional -> if not provided, assuming not needed)
+          # api_key: "$QBIT_API_KEY" # (recommended -> requires qBittorrent 5.2.0+; takes precedence over username/password)
+          # username: "$QBIT_USERNAME" # (legacy -> for qBittorrent < 5.2; ignored if api_key is set)
+          # password: "$QBIT_PASSWORD" # (legacy -> for qBittorrent < 5.2; ignored if api_key is set)
           name: "qBittorrent 1" # (optional -> if not provided, assuming "qBittorrent". Must correspond with what is specified in your *arr as download client name)
         - base_url: "http://qbittorrent:8080"
           name: "qBittorrent 2" 
@@ -399,6 +409,13 @@ Configures the general behavior of the application (across all features)
 -   Type: Integer
 -   Unit: Minutes
 -   Is Mandatory: No (Defaults to 10)
+
+#### REQUEST_TIMEOUT
+
+-   Timeout used for HTTP/API requests to *arr and download clients
+-   Type: Integer or Float
+-   Unit: Seconds
+-   Is Mandatory: No (Defaults to 15)
 
 #### SSL_VERIFICATION
 
@@ -552,11 +569,13 @@ This is the interesting section. It defines which job you want decluttarr to run
 -   Steers whether downloads stuck obtaining metadata are removed from the queue
 -   Blocklisted: Yes
 -   Type: Boolean or Dict
--   Permissible Values: True, False or max_strikes (int)
+-   Permissible Values: True, False or max_strikes (int), detect_via_missing_size (bool)
 -   Is Mandatory: No (Defaults to False)
 -   Note:
       - With max_strikes you can define how many times this torrent can be caught before being removed
       - Instead of configuring it here, you may also configure it as a default across all jobs or use the built-in defaults (see further above under "max_strikes")
+      - By default, this check relies on the "qBittorrent is downloading metadata" message that qBittorrent surfaces in the \*arr queue. Other download clients (e.g. Transmission, Deluge) do not surface such a message, so a torrent stuck fetching metadata stays undetected (see [#57](https://github.com/ManiMatter/decluttarr/issues/57)).
+      - Set `detect_via_missing_size: true` to additionally flag, regardless of download client, queued items whose size is not yet known (size 0), which is the client-agnostic signature of "no metadata yet". This is debounced by max_strikes. Defaults to False to keep existing (qBittorrent) behavior unchanged.
 
 #### REMOVE_MISSING_FILES
 
@@ -696,8 +715,9 @@ Supported download clients: **qBittorrent** and **SABnzbd**.
 -   Type: List of qbit instances
 -   Keys per instance
     - base_url: URL under which the qbit can be reached (mandatory)
-    - username: Optional - only needed if your qbit requires authentication (which you may not need if you have configured qbit in a way that it disables it for local connections)
-    - password: Optional - see above
+    - api_key: Recommended - qBittorrent API key (requires qBittorrent 5.2.0 or newer; generate it under Web UI settings). Authenticates without storing credentials, and takes precedence over username/password if both are set.
+    - username: Legacy - only for qBittorrent < 5.2, or if your qbit requires authentication (which you may not need if qbit disables it for local connections). Ignored when api_key is set.
+    - password: Legacy - see above
     - name: Optional. Needs to correspond with the name that you have set up in your Arr instance. Defaults to "qBittorrent"
 
 #### SABNZBD

@@ -1,4 +1,6 @@
 # Cleans the download queue
+import requests
+
 from src.jobs.remove_bad_files import RemoveBadFiles
 from src.jobs.remove_done_seeding import RemoveDoneSeeding
 from src.jobs.remove_failed_downloads import RemoveFailedDownloads
@@ -25,12 +27,25 @@ class JobManager:
     async def run_jobs(self, arr):
         self.arr = arr
         logger.info(f"*** Running jobs on {self.arr.name} ({self.arr.base_url}) ***")
-        await self.removal_jobs()
-        await self.search_jobs()
+        await self._run_arr_job_group("Removal Jobs", self.removal_jobs)
+        await self._run_arr_job_group("Search Jobs", self.search_jobs)
 
     async def run_download_client_jobs(self):
         """Run jobs that operate on download clients directly."""
-        if not await self._download_clients_connected():
+        try:
+            if not await self._download_clients_connected():
+                return None
+        except requests.exceptions.RequestException as err:
+            logger.error(
+                f"Download client connectivity check failed with request error: {err}",
+                exc_info=True,
+            )
+            return None
+        except Exception as err:  # noqa: BLE001
+            logger.error(
+                f"Download client connectivity check failed: {err}",
+                exc_info=True,
+            )
             return None
 
         items_detected = 0
@@ -42,6 +57,9 @@ class JobManager:
             )
 
             for client in download_clients:
+                if not client.ready:
+                    continue
+
                 # Get jobs for this client
                 download_client_jobs = self._get_download_client_jobs_for_client(
                     client,
@@ -57,7 +75,9 @@ class JobManager:
 
                 for download_client_job in download_client_jobs:
                     if download_client_job.job.enabled:
-                        items_detected += await download_client_job.run()
+                        items_detected += await self._run_download_client_job(
+                            download_client_job, client
+                        )
 
         return items_detected
 
@@ -134,6 +154,8 @@ class JobManager:
 
     async def _check_client_connection_status(self, clients):
         for client in clients:
+            if not client.ready:  # never-set-up client must not veto or be polled
+                continue
             logger.debug(
                 f"job_manager.py/_check_client_connection_status: Checking if {client.name} is connected",
             )
@@ -143,6 +165,37 @@ class JobManager:
                 )
                 return False
         return True
+
+    async def _run_arr_job_group(self, label, job_runner):
+        """Run one ARR job group and keep the main loop alive on failures."""
+        try:
+            await job_runner()
+        except requests.exceptions.RequestException as err:
+            logger.error(
+                f"{label}: request error on {self.arr.name} ({self.arr.base_url}): {err}",
+                exc_info=True,
+            )
+        except Exception as err:  # noqa: BLE001
+            logger.error(
+                f"{label}: unexpected error on {self.arr.name} ({self.arr.base_url}): {err}",
+                exc_info=True,
+            )
+
+    async def _run_download_client_job(self, download_client_job, client):
+        """Run one download-client job and keep the loop alive on failures."""
+        try:
+            return await download_client_job.run()
+        except requests.exceptions.RequestException as err:
+            logger.error(
+                f"Download-client job '{download_client_job.job_name}' failed on {client.name} ({client.base_url}) due to request error: {err}",
+                exc_info=True,
+            )
+        except Exception as err:  # noqa: BLE001
+            logger.error(
+                f"Download-client job '{download_client_job.job_name}' failed on {client.name} ({client.base_url}): {err}",
+                exc_info=True,
+            )
+        return 0
 
     def _get_removal_jobs(self):
         """

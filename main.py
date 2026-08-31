@@ -8,7 +8,7 @@ from src.deletion_handler.deletion_handler import WatcherManager
 from src.job_manager import JobManager
 from src.settings.settings import Settings
 from src.utils.log_setup import logger
-from src.utils.startup import launch_steps
+from src.utils.startup import launch_steps, retry_degraded_instances
 from src.web.events import EventBus, NoOpEventBus, Event, EventType
 
 settings = Settings()
@@ -70,11 +70,14 @@ async def wait_next_run():
 async def main():
     await launch_steps(settings)
 
-    if settings.jobs.detect_deletions:
-        await WatcherManager(settings).setup()
+    if settings.jobs.detect_deletions.enabled:
+        await watch_manager.setup()
     # Start Cleaning
     while True:
         logger.info("-" * 50)
+
+        # Give degraded instances a chance to rejoin before this cycle's jobs
+        await retry_degraded_instances(settings, watch_manager)
 
         await event_bus.emit(Event(EventType.CYCLE_START, {
             "instances": [arr.name for arr in settings.instances],
@@ -82,10 +85,20 @@ async def main():
 
         # Refresh qBit Cookies (SABnzbd doesn't need cookie refresh)
         for qbit in settings.download_clients.qbittorrent:
-            await qbit.refresh_cookie()
+            if not qbit.ready:
+                continue
+            try:
+                await qbit.refresh_cookie()
+            except Exception as err:  # noqa: BLE001
+                logger.error(
+                    f"Error while refreshing cookie for {qbit.name} ({qbit.base_url}): {err}",
+                    exc_info=True,
+                )
 
         # Run script for each instance
         for arr in settings.instances:
+            if not arr.ready:  # skip was already logged by retry_degraded_instances
+                continue
             try:
                 await job_manager.run_jobs(arr)
             except Exception as e:
@@ -95,8 +108,11 @@ async def main():
         # Run download client jobs (these run independently of *arr instances)
         try:
             await job_manager.run_download_client_jobs()
-        except Exception as e:
-            logger.error(f"Error running download client jobs: {e}")
+        except Exception as err:  # noqa: BLE001
+            logger.error(
+                f"Error while running download-client jobs: {err}",
+                exc_info=True,
+            )
 
         await event_bus.emit(Event(EventType.CYCLE_END, {
             "instances": [arr.name for arr in settings.instances],

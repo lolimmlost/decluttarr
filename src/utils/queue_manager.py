@@ -75,6 +75,7 @@ class QueueManager:
             method="POST",
             endpoint=f"{self.arr.api_url}/command",
             settings=self.settings,
+            timeout=self.arr.timeout,
             json={"name": "RefreshMonitoredDownloads"},
             headers={"X-Api-Key": self.arr.api_key},
         )
@@ -109,6 +110,7 @@ class QueueManager:
             method="GET",
             endpoint=f"{self.arr.api_url}/queue",
             settings=self.settings,
+            timeout=self.arr.timeout,
             params=params,
             headers={"X-Api-Key": self.arr.api_key},
         )
@@ -241,3 +243,21 @@ class QueueManager:
                     filtered_items.append(item)
                     break
         return filtered_items
+
+    @staticmethod
+    def filter_missing_size(queue: list[dict]) -> list[dict]:
+        """
+        Return queued items whose size is not yet known (no metadata fetched).
+
+        Unlike qBittorrent, clients such as Transmission or Deluge do not surface a
+        "downloading metadata" message in the *arr queue, so a torrent stuck fetching
+        metadata cannot be matched by message. Such items are reported by the *arr as
+        status "queued" with size 0. This client-agnostic check catches them (see #57).
+
+        The "size" key must be present so that incomplete items are not matched.
+        """
+        return [
+            item
+            for item in queue
+            if item.get("status") == "queued" and "size" in item and not item["size"]
+        ]

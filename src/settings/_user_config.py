@@ -13,6 +13,7 @@ CONFIG_MAPPING = {
         "LOG_LEVEL",
         "TEST_RUN",
         "TIMER",
+        "REQUEST_TIMEOUT",
         "SSL_VERIFICATION",
         "IGNORED_DOWNLOAD_CLIENTS",
         "PRIVATE_TRACKER_HANDLING",
@@ -98,7 +99,11 @@ def _load_from_env() -> dict:
                 parsed_value = _lowercase(parsed_value)
             except yaml.YAMLError as e:
                 logger.error(
-                    f"Failed to parse environment variable {key} as YAML:\n{e}",
+                    "Could not parse %s as YAML. Check for smart quotes or "
+                    "incorrect indentation. Configuration from this variable "
+                    "was ignored.\n%s",
+                    key,
+                    e,
                 )
                 parsed_value = {}
             stored_key = key[len(section_prefix):] if key.startswith(section_prefix) else key
