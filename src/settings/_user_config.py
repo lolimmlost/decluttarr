@@ -41,7 +41,7 @@ CONFIG_MAPPING = {
         "SEARCH_UNMET_CUTOFF",
         "SEARCH_MISSING",
     ],
-    "instances": ["SONARR", "RADARR", "READARR", "LIDARR", "WHISPARR"],
+    "instances": ["SONARR", "SPORTARR", "RADARR", "READARR", "LIDARR", "WHISPARR"],
     "download_clients": ["QBITTORRENT"],
     "web": ["WEB_ENABLED", "WEB_HOST", "WEB_PORT", "PROXY_PREFIX", "WEB_DB_PATH"],
 }

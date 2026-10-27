@@ -58,6 +58,7 @@
                 <select :value="config.general.private_tracker_handling"
                         data-key="general.private_tracker_handling" @change="saveField">
                     <option value="remove">Remove</option>
+                    <option value="remove_from_queue">Remove from queue (keep seeding)</option>
                     <option value="skip">Skip</option>
                     <option value="obsolete_tag">Obsolete Tag</option>
                 </select>
@@ -67,6 +68,7 @@
                 <select :value="config.general.public_tracker_handling"
                         data-key="general.public_tracker_handling" @change="saveField">
                     <option value="remove">Remove</option>
+                    <option value="remove_from_queue">Remove from queue (keep seeding)</option>
                     <option value="skip">Skip</option>
                     <option value="obsolete_tag">Obsolete Tag</option>
                 </select>

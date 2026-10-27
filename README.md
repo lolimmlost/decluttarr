@@ -57,6 +57,7 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
     - [READARR](#readarr)
     - [LIDARR](#lidarr)
     - [WHISPARR](#whisparr)
+    - [SPORTARR](#sportarr)
   - [Downloaders](#download-clients)
     - [QBITTORRENT](#qbittorrent)
 
@@ -64,7 +65,7 @@ Looking to **upgrade from V1 to V2**? Look [here](#upgrading-from-v1-to-v2)
 
 Decluttarr is a helper tool that works with the *arr-application suite, and automates the clean-up for their download queues, keeping them free of stalled / redundant downloads. 
 
-It supports [Radarr](https://github.com/Radarr/Radarr/), [Sonarr](https://github.com/Sonarr/Sonarr/), [Readarr](https://github.com/Readarr/Readarr/), [Lidarr](https://github.com/Lidarr/Lidarr/), and [Whisparr](https://github.com/Whisparr/Whisparr/).
+It supports [Radarr](https://github.com/Radarr/Radarr/), [Sonarr](https://github.com/Sonarr/Sonarr/), [Sportarr](https://github.com/Sportarr/Sportarr/), [Readarr](https://github.com/Readarr/Readarr/), [Lidarr](https://github.com/Lidarr/Lidarr/), and [Whisparr](https://github.com/Whisparr/Whisparr/).
 
 Feature overview:
 
@@ -277,6 +278,10 @@ services:
         - base_url: "http://sonarr2:8989"
           api_key: "$SONARR_API_KEY"
 
+      # SPORTARR: >
+      #   - base_url: "http://sportarr:1867"
+      #     api_key: "$SPORTARR_API_KEY"
+
       # RADARR: >
       #   - base_url: "http://radarr:7878"
       #     api_key: "$RADARR_API_KEY"
@@ -440,8 +445,9 @@ Configures the general behavior of the application (across all features)
     -   "remove" means that torrents are removed (default behavior)
     -   "skip" means they are disregarded (which some users might find handy to protect their private trackers prematurely, i.e., before their seed targets are met)
     -   "obsolete_tag" means that rather than being removed, the torrents are tagged. This allows other applications (such as [qbit_manage](https://github.com/StuffAnThings/qbit_manage) to monitor them and remove them once seed targets are fulfilled)
+    -   "remove_from_queue" behaves like "remove" on the *arr side (the queue entry is cleared, and blocklisted if the job blocklists), but leaves the torrent untouched in the download client. Use this when the torrent still carries a hit-and-run obligation you must honour: the *arr stops waiting on a download that will never import and is free to grab an alternative, while seeding continues and another application (such as [qbit_manage](https://github.com/StuffAnThings/qbit_manage)) retires the torrent on the tracker's terms. Unlike "obsolete_tag" this clears the queue entry immediately rather than waiting for the torrent to disappear
 -   Type: String
--   Permissible Values: remove, skip, obsolete_tag
+-   Permissible Values: remove, remove_from_queue, skip, obsolete_tag
 -   Is Mandatory: No (Defaults to remove)
 
 
@@ -698,6 +704,8 @@ Defines arr-instances on which download queue should be decluttered
 #### Lidarr
 - Equivalent of [Radarr](#radarr)
 #### Whisparr
+- Equivalent of [Radarr](#radarr)
+#### Sportarr
 - Equivalent of [Radarr](#radarr)
 
 

@@ -29,6 +29,7 @@ class Tracker:
         self.defective = {}
         self.download_progress = {}
         self.deleted = []
+        self.obsolete_tagged = []
         self.extension_checked = []
 
     def reset(self) -> None:
@@ -38,6 +39,7 @@ class Tracker:
             self.defective,
             self.download_progress,
             self.deleted,
+            self.obsolete_tagged,
             self.extension_checked,
         ):
             attr.clear()
@@ -107,7 +109,7 @@ class ArrInstances(list):
         }
 
         outputs = []
-        for arr_type in ["sonarr", "radarr", "readarr", "lidarr", "whisparr"]:
+        for arr_type in ["sonarr", "sportarr", "radarr", "readarr", "lidarr", "whisparr"]:
             arrs = self.get_by_arr_type(arr_type)
             if arrs:
                 output = get_config_as_yaml(
@@ -190,7 +192,7 @@ class ArrInstance:
         self.detail_item_id_key = self.detail_item_key + "Id"
         self.detail_item_ids_key = self.detail_item_key + "Ids"
         self.detail_item_search_command = getattr(DetailItemSearchCommand, arr_type)
-        if self.arr_type in ("radarr", "sonarr"):
+        if self.arr_type in ("radarr", "sonarr", "sportarr"):
             self.refresh_item_key = getattr(RefreshItemKey, arr_type)
             self.refresh_item_id_key = self.refresh_item_key + "Id"
             self.refresh_item_command = getattr(RefreshItemCommand, arr_type)
@@ -235,6 +237,13 @@ class ArrInstance:
     def _check_arr_type(self, status):
         """Check if the ARR instance is of the correct type."""
         actual_arr_type = status["appName"]
+        if self.arr_type == "sportarr":
+            # Sportarr's Sonarr-compatible API reports appName "Sonarr" (other
+            # consumers validate on that), so its identity marker is the extra
+            # sportarrVersion field a real Sonarr never sends.
+            if "sportarrVersion" in status:
+                return
+            actual_arr_type = "Sonarr"
         if actual_arr_type.lower() != self.arr_type:
             logger.error("!! %s Error: !!", self.name)
             logger.error(
@@ -357,7 +366,9 @@ class ArrInstance:
                     logger.info(tip)
         return
 
-    async def remove_queue_item(self, queue_id, *, blocklist=False):
+    async def remove_queue_item(
+        self, queue_id, *, blocklist=False, remove_from_client=True
+    ):
         """
         Remove a specific queue item from the queue by its queue id.
 
@@ -366,17 +377,22 @@ class ArrInstance:
         Args:
             queue_id (str): The queue ID of the queue item to be removed.
             blocklist (bool): Whether to add the item to the blocklist. Default is False.
+            remove_from_client (bool): Whether to also delete the download from the
+                download client. Default is True. Set to False to clear only the queue
+                entry and leave the torrent in place (e.g. to keep seeding a private
+                tracker torrent that still carries a hit-and-run obligation).
 
         Returns:
             bool: Returns True if the removal was successful, False otherwise.
 
         """
         logger.debug(
-            f"_instances.py/remove_queue_item: Removing queue item, blocklist: {blocklist}"
+            f"_instances.py/remove_queue_item: Removing queue item, blocklist: {blocklist}, "
+            f"remove_from_client: {remove_from_client}"
         )
         endpoint = f"{self.api_url}/queue/{queue_id}"
         headers = {"X-Api-Key": self.api_key}
-        query = {"removeFromClient": True, "blocklist": blocklist}
+        query = {"removeFromClient": remove_from_client, "blocklist": blocklist}
 
         # Send the request to remove the download from the queue
         response = await make_request(
